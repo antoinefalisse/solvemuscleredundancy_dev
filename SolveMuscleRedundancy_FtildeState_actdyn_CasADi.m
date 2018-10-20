@@ -383,9 +383,9 @@ for k=0:N-1
         FTtildek_end = FTtildek_end + D(j+1)*FTtildekj{j};        
         % Add contribution to quadrature function
         J = J + ...
-            B(j+1)*f_J9(akj{j})*h + ...   
-            auxdata.w1*B(j+1)*f_J3(aTk)*h + ... 
-            auxdata.w2*B(j+1)*f_J9(vAk/auxdata.scaling.vA)*h;
+            B(j+1)*f_ssNMuscles(akj{j})*h + ...   
+            auxdata.w1*B(j+1)*f_ssNdof(aTk)*h + ... 
+            auxdata.w2*B(j+1)*f_ssNMuscles(vAk/auxdata.scaling.vA)*h;
     end
     
  % Get muscle-tendon forces and derive Hill-equilibrium
@@ -396,7 +396,7 @@ for k=0:N-1
 for dof = 1:auxdata.Ndof
     T_exp = IDinterp(k+1,dof);    
     index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
-    T_sim = f_T9(MAinterp(k+1,index_sel),FTk) + auxdata.Topt*aTk(dof);   
+    T_sim = f_spNMuscles(MAinterp(k+1,index_sel),FTk) + auxdata.Topt*aTk(dof);   
     g   = {g{:},T_exp-T_sim};
     lbg  = [lbg; 0];
     ubg = [ubg; 0];

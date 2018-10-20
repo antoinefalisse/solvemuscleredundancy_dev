@@ -3,30 +3,30 @@
 import casadi.*
 
 %% Functions for normalized sum of squared values
-% 9
-etemp9 = SX.sym('etemp9',9);
-Jtemp9 = 0;
-for i=1:length(etemp9)
-    Jtemp9 = Jtemp9 + etemp9(i).^2;
+% # muscles
+e_ss = SX.sym('etemp_NMuscles',auxdata.NMuscles);
+J_ss = 0;
+for i=1:length(e_ss)
+    J_ss = J_ss + e_ss(i).^2;
 end
-f_J9 = Function('f_J9',{etemp9},{Jtemp9});
-% 3 
-etemp3 = SX.sym('etemp3',3);
-Jtemp3 = 0;
-for i=1:length(etemp3)
-    Jtemp3 = Jtemp3 + etemp3(i).^2;
+f_ssNMuscles = Function('f_ssNMuscles',{e_ss},{J_ss});
+% # dofs
+e_ss = SX.sym('e_Ndof',auxdata.Ndof);
+J_ss = 0;
+for i=1:length(e_ss)
+    J_ss = J_ss + e_ss(i).^2;
 end
-f_J3 = Function('f_J3',{etemp3},{Jtemp3});
+f_ssNdof = Function('f_ssNdof',{e_ss},{J_ss});
 
 %% Function for sum of products 
-% 9
-ma_temp9 = SX.sym('ma_temp9',9);
-ft_temp9 = SX.sym('ft_temp9',9);
-J_sptemp9 = 0;
-for i=1:length(ma_temp9)
-    J_sptemp9 = J_sptemp9 + ma_temp9(i,1)*ft_temp9(i,1);    
+% # muscles
+ma_sp = SX.sym('ma_NMuscles',auxdata.NMuscles);
+ft_sp = SX.sym('ft_NMuscles',auxdata.NMuscles);
+J_sp = 0;
+for i=1:length(ma_sp)
+    J_sp = J_sp + ma_sp(i,1)*ft_sp(i,1);    
 end
-f_T9 = Function('f_T9',{ma_temp9,ft_temp9},{J_sptemp9});
+f_spNMuscles = Function('f_spNMuscles',{ma_sp,ft_sp},{J_sp});
 
 %% Muscle contraction dynamics
 % States 
