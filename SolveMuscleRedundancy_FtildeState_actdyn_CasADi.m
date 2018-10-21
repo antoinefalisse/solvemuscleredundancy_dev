@@ -284,8 +284,8 @@ end
 % guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
 % guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
 % Random
-guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) 0.2*ones(N,auxdata.NMuscles)];
+guess.phase.control = [zeros(auxdata.NMuscles) zeros(auxdata.Ndof) 0.01*ones(auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(auxdata.NMuscles) 0.2*ones(auxdata.NMuscles)];
 
 % Empty NLP
 w   = {};
@@ -303,13 +303,13 @@ a0              = MX.sym('a0',auxdata.NMuscles);
 w               = [w {a0}];
 lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(1,1:auxdata.NMuscles)'];
 % Muscle-tendon forces
 FTtilde0        = MX.sym('FTtilde0',auxdata.NMuscles);
 w               = [w {FTtilde0}];
 lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
 
 % Initial point
 ak          = a0;
@@ -323,19 +323,19 @@ for k=0:N-1
     w           = [w {vAk}];
     lbw         = [lbw; bounds.phase.control.lower(1:auxdata.NMuscles)'];
     ubw         = [ubw; bounds.phase.control.upper(1:auxdata.NMuscles)'];
-    w0          = [w0;  guess.phase.control(1:auxdata.NMuscles)'];
+    w0          = [w0;  guess.phase.control(k+1,1:auxdata.NMuscles)'];
     % rA: reserve actuators
     aTk         = MX.sym(['aT_' num2str(k)], auxdata.Ndof);
     w           = [w {aTk}];
     lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
     ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
-    w0          = [w0;  guess.phase.control(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];    
+    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];    
     % dFTtilde: time derivative of muscle-tendon forces (states)
     dFTtildek   = MX.sym(['dFTtilde_' num2str(k)], auxdata.NMuscles);
     w           = [w {dFTtildek}];
     lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
     ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
-    w0          = [w0;  guess.phase.control(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)']; 
+    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)']; 
     
     % States at collocation points:     
     % Muscle activations
@@ -345,7 +345,7 @@ for k=0:N-1
         w       = {w{:}, akj{j}};
         lbw     = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
         ubw     = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-        w0      = [w0;  guess.phase.state(1:auxdata.NMuscles)'];
+        w0      = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
     end   
     % Muscle-tendon forces
     FTtildekj = {};
@@ -354,7 +354,7 @@ for k=0:N-1
         w            = {w{:}, FTtildekj{j}};
         lbw          = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
         ubw          = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-        w0           = [w0;  guess.phase.state(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+        w0           = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
     end
     
     % Loop over collocation points
@@ -424,13 +424,13 @@ ak              = MX.sym(['a_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, ak};
 lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
 % Muscle-tendon forces
 FTtildek        = MX.sym(['FTtilde_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, FTtildek};
 lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
+w0              = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
 
 % Add equality constraints (next interval starts with end values of 
 % states from previous interval).
