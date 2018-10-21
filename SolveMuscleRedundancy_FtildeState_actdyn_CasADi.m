@@ -284,8 +284,8 @@ end
 % guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
 % guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
 % Random
-guess.phase.control = [zeros(auxdata.NMuscles) zeros(auxdata.Ndof) 0.01*ones(auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(auxdata.NMuscles) 0.2*ones(auxdata.NMuscles)];
+guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) 0.2*ones(N,auxdata.NMuscles)];
 
 % Empty NLP
 w   = {};
