@@ -40,7 +40,7 @@ FT          = SX(auxdata.NMuscles,1);
 lMT = SX.sym('lMT',auxdata.NMuscles); % Muscle-tendon length
 vMT = SX.sym('vMT',auxdata.NMuscles); % Muscle-tendon velocity
 for m = 1:auxdata.NMuscles 
-    [Hilldiff(m),FT(m)] = ForceEquilibrium_FtildeState_CasADi(a(m),FTtilde(m),dFTtilde(m),lMT(m),vMT(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam);        
+    [Hilldiff(m),FT(m)] = ForceEquilibrium_FtildeState(a(m),FTtilde(m),dFTtilde(m),lMT(m),vMT(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m));        
 end
 f_forceEquilibrium_FtildeState = Function('f_forceEquilibrium_FtildeState',{a,FTtilde,dFTtilde,lMT,vMT,},{Hilldiff,FT});
 % Test function
@@ -50,9 +50,9 @@ f_forceEquilibrium_FtildeState = Function('f_forceEquilibrium_FtildeState',{a,FT
 % lMTtest = rand(auxdata.NMuscles,1);
 % vMTtest = rand(auxdata.NMuscles,1);
 % for m = 1:auxdata.NMuscles
-%     [Hilldifftest(m,1),FTtest(m,1)] = ForceEquilibrium_FtildeState_CasADi(...
+%     [Hilldifftest(m,1),FTtest(m,1)] = ForceEquilibrium_FtildeState(...
 %         atest(m),FTtildetest(m),dFTtildetest(m),lMTtest(m),...
-%         vMTtest(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam);
+%         vMTtest(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m));
 % end
 % [Hilldifftest2,FTtest2] = f_forceEquilibrium_FtildeState(atest,FTtildetest,dFTtildetest,lMTtest,vMTtest);
 % assertHill = max(abs(Hilldifftest-Hilldifftest2));
