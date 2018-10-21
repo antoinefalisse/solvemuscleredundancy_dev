@@ -118,5 +118,5 @@ title('Muscle fiber lengths')
 figure()
 plot(Time_actdyn.gpo,RActivation_actdyn.gpo,'LineWidth',2);
 hold on
-plot(Time_actdyn.cas.meshPoints(1:end-1),RActivation_actdyn.cas.meshPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.meshPoints(1:end-1),RActivation_actdyn.cas.meshPoints./150,'LineStyle',':','LineWidth',2);
 title('Reserve actuators')

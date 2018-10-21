@@ -1,16 +1,19 @@
 % SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
 %
-% This function solves the muscle redundancy problem in the leg using the
-% direct collocation optimal control software GPOPS-II as described in De
-% Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct
-% collocation optimal control problem formulations for solving the muscle
-% redundancy problem. Annals of Biomedical Engineering (2016).
+% This function solves the muscle redundancy problem in the leg as 
+% described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of 
+% direct collocation optimal control problem formulations for solving the 
+% muscle redundancy problem. Annals of Biomedical Engineering (2016).
 %
 % Change with regards to version 0.1: Activation dynamics as described in
 % De Goote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J,
 % De Schutter J. A physiology based inverse dynamic analysis of human gait:
 % potential and perspectives. Computer Methods in Biomechanics and
 % Biomedical Engineering (2009).
+%
+% Change with regards to version 1.1: Use of CasADi instead of GPOPS-II.
+% CasADi is an open-source tool for nonlinear optimization and algorithmic
+% differentiation (see https://web.casadi.org/)
 %
 % Authors:  F. De Groote, M. Afschrift, A. Falisse, T. Van Wouwe
 % Emails:   friedl.degroote@kuleuven.be
@@ -557,7 +560,7 @@ lMtilde.collocationPoints = lMtilde_opt_ext;
 lM.meshPoints = lMtilde_opt.*repmat(DatStore.lOpt,length(Time.meshPoints),1);
 lM.collocationPoints = lMtilde_opt_ext.*repmat(DatStore.lOpt,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
-RActivation.meshPoints = aT_opt;
+RActivation.meshPoints = aT_opt*auxdata.Topt;
 MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Tendon force from lMtilde

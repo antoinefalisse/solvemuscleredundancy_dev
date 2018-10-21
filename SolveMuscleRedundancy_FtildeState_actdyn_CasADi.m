@@ -1,16 +1,19 @@
 % SolveMuscleRedundancy_FtildeState, version 2.1 (October 2018)
 %
-% This function solves the muscle redundancy problem in the leg using the
-% direct collocation optimal control software GPOPS-II as described in De
-% Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct
-% collocation optimal control problem formulations for solving the muscle
-% redundancy problem. Annals of Biomedical Engineering (2016).
+% This function solves the muscle redundancy problem in the leg as 
+% described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of 
+% direct collocation optimal control problem formulations for solving the 
+% muscle redundancy problem. Annals of Biomedical Engineering (2016).
 %
 % Change with regards to version 0.1: Activation dynamics as described in
 % De Goote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J,
 % De Schutter J. A physiology based inverse dynamic analysis of human gait:
 % potential and perspectives. Computer Methods in Biomechanics and
 % Biomedical Engineering (2009).
+%
+% Change with regards to version 1.1: Use of CasADi instead of GPOPS-II.
+% CasADi is an open-source tool for nonlinear optimization and algorithmic
+% differentiation (see https://web.casadi.org/)
 %
 % Authors:  F. De Groote, M. Afschrift, A. Falisse, T. Van Wouwe
 % Emails:   friedl.degroote@kuleuven.be
@@ -41,7 +44,7 @@
 %           lMtilde: normalized muscle fiber length
 %           lM: muscle fiber length
 %           MuscleNames: names of muscles
-%           OptInfo: output of GPOPS-II
+%           OptInfo: output
 %           DatStore: structure with data used for solving the optimal
 %           control problem
 %
@@ -563,7 +566,7 @@ TForcetilde.collocationPoints = FTtilde_opt_ext;
 TForce.meshPoints = FTtilde_opt.*repmat(DatStore.Fiso,length(Time.meshPoints),1);
 TForce.collocationPoints = FTtilde_opt_ext.*repmat(DatStore.Fiso,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
-RActivation.meshPoints = aT_opt;
+RActivation.meshPoints = aT_opt*auxdata.Topt;
 MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Muscle fiber length from Ftilde
