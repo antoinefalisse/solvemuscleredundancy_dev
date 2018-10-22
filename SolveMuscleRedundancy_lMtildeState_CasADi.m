@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -6,10 +6,15 @@
 % collocation optimal control problem formulations for solving the muscle
 % redundancy problem. Annals of Biomedical Engineering (2016).
 %
-% Authors:  F. De Groote, M. Afschrift, A. Falisse
+% Change with regards to version 1.1: Use of CasADi instead of GPOPS-II.
+% CasADi is an open-source tool for nonlinear optimization and algorithmic
+% differentiation (see https://web.casadi.org/)
+%
+% Authors:  F. De Groote, M. Afschrift, A. Falisse, T. Van Wouwe
 % Emails:   friedl.degroote@kuleuven.be
 %           maarten.afschrift@kuleuven.be
 %           antoine.falisse@kuleuven.be
+%           tom.vanwouwe@kuleuven.be
 %
 % ----------------------------------------------------------------------- %
 % This function uses the normalized muscle fiber length as a state (see
@@ -153,6 +158,9 @@ auxdata.NMuscles = DatStore.nMuscles;   % number of muscles
 auxdata.Ndof = DatStore.nDOF;           % number of dofs
 auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
+auxdata.scaling.vMtilde = 10;           % Scaling factor: derivative muscle fiber lengths
+auxdata.w1 = 1000;                      % Weight objective function
+auxdata.Topt = 150;                     % Scaling factor: reserve actuators
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
 for i = 1:auxdata.Ndof
@@ -165,13 +173,13 @@ tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % de
 auxdata.b = 0.1;   
 
 % Parameters of active muscle force-velocity characteristic
-load ActiveFVParameters.mat
+load('ActiveFVParameters.mat','ActiveFVParameters');
 Fvparam(1) = 1.475*ActiveFVParameters(1); Fvparam(2) = 0.25*ActiveFVParameters(2);
 Fvparam(3) = ActiveFVParameters(3) + 0.75; Fvparam(4) = ActiveFVParameters(4) - 0.027;
 auxdata.Fvparam = Fvparam;
 
 % Parameters of active muscle force-length characteristic
-load Faparam.mat                            
+load('Faparam.mat','Faparam');                            
 auxdata.Faparam = Faparam;
 
 % Parameters of passive muscle force-length characteristic
@@ -219,11 +227,11 @@ bounds.eventgroup.lower = [pera_lower perlMtilde_lower]; bounds.eventgroup.upper
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
 % Static optimization results as initial guess
-guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
+% guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
+% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
 % Random initial guess
-% guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.2*ones(N,auxdata.NMuscles)];
-% guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.2*ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
 % Spline structures
@@ -238,73 +246,295 @@ for m = 1:auxdata.NMuscles
     auxdata.LMTSpline(m) = spline(DatStore.time,DatStore.LMT(:,m));
 end
 
-% GPOPS setup
-setup.name = 'DynamicOptimization_lMtildestate';
-setup.auxdata = auxdata;
-setup.bounds = bounds;
-setup.guess = guess;
-setup.nlp.solver = 'ipopt';
-setup.nlp.ipoptoptions.linear_solver = 'ma57';
-setup.derivatives.derivativelevel = 'second';
-setup.nlp.ipoptoptions.tolerance = 1e-5;
-setup.nlp.ipoptoptions.maxiterations = 2000;
-setup.derivatives.supplier = 'adigator';
-setup.scales.method = 'none';
-setup.mesh.method = 'hp-PattersonRao';
-setup.mesh.tolerance = 1e-3;
-setup.mesh.maxiterations = 0;
-setup.mesh.colpointsmin = 3;
-setup.mesh.colpointsmax = 10;
-setup.method = 'RPM-integration';
-setup.displaylevel = 2;
-NMeshIntervals = round((tf-t0)*Misc.Mesh_Frequency);
-setup.mesh.phase.colpoints = 3*ones(1,NMeshIntervals);
-setup.mesh.phase.fraction = (1/(NMeshIntervals))*ones(1,NMeshIntervals);
-setup.functions.continuous = @musdynContinous_lMtildeState;
-setup.functions.endpoint = @musdynEndpoint_lMtildeState;
+%% CasADi setup
+import casadi.*
+
+% Collocation scheme
+d = 3; % degree of interpolating polynomial
+method = 'radau'; % other option is 'legendre' (collocation scheme)
+[tau_root,C,D,B] = CollocationScheme(d,method);
+% Load CasADi function
+CasADiFunctions
+
+% Discretization
+N = round((tf-t0)*Misc.Mesh_Frequency);
+h = (tf-t0)/N;
+
+% Interpolation
+step = (tf-t0)/(N-1);
+time_opt = t0:step:tf;
+LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
+for m = 1:auxdata.NMuscles
+    [LMTinterp(:,m),~,~] = SplineEval_ppuval(auxdata.LMTSpline(m),time_opt,1);
+end
+MAinterp = zeros(length(time_opt),auxdata.Ndof*auxdata.NMuscles);
+IDinterp = zeros(length(time_opt),auxdata.Ndof);
+for dof = 1:auxdata.Ndof
+    for m = 1:auxdata.NMuscles
+        index_sel=(dof-1)*(auxdata.NMuscles)+m;
+        MAinterp(:,index_sel) = ppval(auxdata.JointMASpline(dof).Muscle(m),time_opt);   
+    end
+    IDinterp(:,dof) = ppval(auxdata.JointIDSpline(dof),time_opt);
+end
+
+% Initial guess
+% Based on SO
+% guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
+% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
+% Random
+guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+
+% Empty NLP
+w   = {};
+w0  = [];
+lbw = [];
+ubw = [];
+J   = 0;
+g   = {};
+lbg = [];
+ubg = [];
+
+% States
+% Muscle activations
+a0              = MX.sym('a0',auxdata.NMuscles);
+w               = [w {a0}];
+lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
+ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(1,1:auxdata.NMuscles)'];
+% Muscle fiber lengths
+lMtilde0        = MX.sym('lMtilde0',auxdata.NMuscles);
+w               = [w {lMtilde0}];
+lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+
+% Initial point
+ak          = a0;
+lMtildek    = lMtilde0;
+
+% loop over mesh points
+for k=0:N-1
+    % Controls at mesh points (piecewise-constant in mesh intervals): 
+    % e: muscle excitations
+    ek          = MX.sym(['e_' num2str(k)], auxdata.NMuscles);
+    w           = [w {ek}];
+    lbw         = [lbw; bounds.phase.control.lower(1:auxdata.NMuscles)'];
+    ubw         = [ubw; bounds.phase.control.upper(1:auxdata.NMuscles)'];
+    w0          = [w0;  guess.phase.control(k+1,1:auxdata.NMuscles)'];
+    % rA: reserve actuators
+    aTk         = MX.sym(['aT_' num2str(k)], auxdata.Ndof);
+    w           = [w {aTk}];
+    lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
+    ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
+    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];    
+    % vMtilde: time derivative of muscle fiber lengths (states)
+    vMtildek   = MX.sym(['vMtilde_' num2str(k)], auxdata.NMuscles);
+    w           = [w {vMtildek}];
+    lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
+    ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
+    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)']; 
     
-% ADiGator setup
-persistent splinestruct
-input.auxdata = auxdata;
-tdummy = guess.phase.time;
-splinestruct = SplineInputData(tdummy,input);
-splinenames = fieldnames(splinestruct);
-for Scount = 1:length(splinenames)
-  secdim = size(splinestruct.(splinenames{Scount}),2);
-  splinestructad.(splinenames{Scount}) = adigatorCreateAuxInput([Inf,secdim]);
-  splinestruct.(splinenames{Scount}) = zeros(0,secdim);
+    % States at collocation points:     
+    % Muscle activations
+    akj = {};
+    for j=1:d
+        akj{j}  = MX.sym(['	a_' num2str(k) '_' num2str(j)], auxdata.NMuscles);
+        w       = {w{:}, akj{j}};
+        lbw     = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
+        ubw     = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
+        w0      = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
+    end   
+    % Muscle fiber lengths
+    lMtildekj = {};
+    for j=1:d
+        lMtildekj{j} = MX.sym(['lMtilde_' num2str(k) '_' num2str(j)], auxdata.NMuscles);
+        w            = {w{:}, lMtildekj{j}};
+        lbw          = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+        ubw          = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+        w0           = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+    end
+    
+    % Loop over collocation points
+    ak_end          = D(1)*ak;
+    lMtildek_end    = D(1)*lMtildek;
+    for j=1:d
+        % Expression for the state derivatives at the collocation point
+        ap          = C(1,j+1)*ak;        
+        lMtildep    = C(1,j+1)*lMtildek;        
+        for r=1:d
+            ap       = ap + C(r+1,j+1)*akj{r};
+            lMtildep = lMtildep + C(r+1,j+1)*lMtildekj{r};
+            
+        end 
+        % Append collocation equations (implicit formulation)
+        % Activation dynamics (explicit formulation)  
+        dadtk   = f_ActivationDynamics(ek,ak);
+        g       = {g{:}, (h*dadtk - ap)};
+        lbg     = [lbg; zeros(auxdata.NMuscles,1)];
+        ubg     = [ubg; zeros(auxdata.NMuscles,1)]; 
+        % Contraction dynamics (implicit formulation)            
+        g       = {g{:}, (h*vMtildek.*auxdata.scaling.vMtilde-lMtildep)};
+        lbg     = [lbg; zeros(auxdata.NMuscles,1)];
+        ubg     = [ubg; zeros(auxdata.NMuscles,1)];
+        % Add contribution to the end state
+        ak_end = ak_end + D(j+1)*akj{j};  
+        lMtildek_end = lMtildek_end + D(j+1)*lMtildekj{j};        
+        % Add contribution to quadrature function
+        J = J + ...
+            B(j+1)*f_ssNMuscles(akj{j})*h + ...   
+            auxdata.w1*B(j+1)*f_ssNdof(aTk)*h;
+    end
+    
+ % Get muscle-tendon forces and derive Hill-equilibrium
+[Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak,lMtildek,vMtildek,LMTinterp(k+1,:)'); 
+
+% Add path constraints
+% Moments constraint
+for dof = 1:auxdata.Ndof
+    T_exp = IDinterp(k+1,dof);    
+    index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
+    T_sim = f_spNMuscles(MAinterp(k+1,index_sel),FTk) + auxdata.Topt*aTk(dof);   
+    g   = {g{:},T_exp-T_sim};
+    lbg  = [lbg; 0];
+    ubg = [ubg; 0];
+end    
+% hill-equilibrium constraint
+g               = {g{:},Hilldiffk};
+lbg             = [lbg; zeros(auxdata.NMuscles,1)];
+ubg             = [ubg; zeros(auxdata.NMuscles,1)];
+% New NLP variables for states at end of interval
+% Muscle activations
+ak              = MX.sym(['a_' num2str(k+1)], auxdata.NMuscles);
+w               = {w{:}, ak};
+lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
+ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
+% Muscle-tendon forces
+lMtildek        = MX.sym(['lMtilde_' num2str(k+1)], auxdata.NMuscles);
+w               = {w{:}, lMtildek};
+lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
+
+% Add equality constraints (next interval starts with end values of 
+% states from previous interval).
+g   = {g{:}, lMtildek_end-lMtildek, ak_end-ak};
+lbg = [lbg; zeros(2*auxdata.NMuscles,1)];
+ubg = [ubg; zeros(2*auxdata.NMuscles,1)];     
 end
-setup.auxdata.splinestruct = splinestructad;
-adigatorGenFiles4gpops2(setup)
 
+% Create an NLP solver
+prob = struct('f', J, 'x', vertcat(w{:}), 'g', vertcat(g{:}));
+options.ipopt.max_iter = 10000;
+options.ipopt.tol = 1e-6;
+solver = nlpsol('solver', 'ipopt',prob,options);
+% Create and save diary
+diary('DynamicOptimization_lMtildeState_CasADi.txt'); 
+sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw,...
+    'lbg', lbg, 'ubg', ubg);    
+diary off
+w_opt = full(sol.x);
+g_opt = full(sol.g);  
+% Save results
+output.setup.bounds = bounds;
+output.setup.auxdata = auxdata;
+output.setup.guess = guess;
+output.setup.lbw = lbw;
+output.setup.ubw = ubw;
+output.setup.nlp.solver = 'ipopt';
+output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
+output.setup.derivatives.derivativelevel = 'second';
+output.setup.nlp.ipoptoptions.tolerance = options.ipopt.tol;
+output.setup.nlp.ipoptoptions.maxiterations = options.ipopt.max_iter;
+output.solution.w_opt = w_opt;
+output.solution.g_opt = g_opt;
 
-setup.functions.continuous = @Wrap4musdynContinous_lMtildeState;
-setup.adigatorgrd.continuous = @musdynContinous_lMtildeStateGrdWrap;
-setup.adigatorgrd.endpoint   = @musdynEndpoint_lMtildeStateADiGatorGrd;
-setup.adigatorhes.continuous = @musdynContinous_lMtildeStateHesWrap;
-setup.adigatorhes.endpoint   = @musdynEndpoint_lMtildeStateADiGatorHes;
+%% Extract results
+% Number of design variables
+NStates = 2*auxdata.NMuscles;
+NControls = 2*auxdata.NMuscles+auxdata.Ndof;
+NParameters = 0;
 
-%% ---------------------------------------------------------------------- %
-% ----------------------------------------------------------------------- %
-% PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
-% ----------------------------------------------------------------------- %
-% ----------------------------------------------------------------------- %
+% In the loop
+Nwl = NControls+d*(NStates)+NStates;
+% In total
+Nw = NParameters+NStates+N*Nwl;
+% Before the variable corresponding to the first collocation point
+Nwm = NParameters+NStates+NControls;
 
-output = gpops2(setup);
+% Control points
+% Muscle activations and muscle fiber lengths
+a_opt = zeros(N+1,auxdata.NMuscles);
+lMtilde_opt = zeros(N+1,auxdata.NMuscles);
+for i = 1:auxdata.NMuscles
+    a_opt(:,i) = w_opt(NParameters+i:Nwl:Nw);
+    lMtilde_opt(:,i) = w_opt(NParameters+auxdata.NMuscles+i:Nwl:Nw);
+end
+% Muscle excitations
+e_opt = zeros(N,auxdata.NMuscles);
+for i = 1:auxdata.NMuscles
+    e_opt(:,i) = w_opt(NParameters+NStates+i:Nwl:Nw);
+end
+% Reserve actuators
+aT_opt = zeros(N,auxdata.Ndof);
+for i = 1:auxdata.Ndof
+    aT_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+i:Nwl:Nw);
+end
+% Time derivatives of muscle-tendon forces
+vMtilde_opt = zeros(N,auxdata.NMuscles);
+for i = 1:auxdata.NMuscles
+    vMtilde_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+auxdata.Ndof+i:Nwl:Nw);
+end
 
-res=output.result.solution.phase(1);
-Time=res.time;
-MActivation=res.state(:,1:auxdata.NMuscles);
-lMtilde=res.state(:,auxdata.NMuscles+1:auxdata.NMuscles*2);
-lM=lMtilde.*(ones(length(Time),1)*DatStore.lOpt);
-MExcitation=res.control(:,1:auxdata.NMuscles);
-RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof);
-MuscleNames=DatStore.MuscleNames;
-OptInfo=output;
+% Collocation points
+% Muscle activations
+a_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
+a_opt_ext(1:(d+1):end,:) = a_opt;
+for nmusi=1:auxdata.NMuscles
+    a_opt_ext(2:(d+1):end,nmusi) = w_opt(Nwm+nmusi:Nwl:Nw);
+    a_opt_ext(3:(d+1):end,nmusi) = w_opt(Nwm+auxdata.NMuscles+nmusi:Nwl:Nw);
+    a_opt_ext(4:(d+1):end,nmusi) = w_opt(Nwm+auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
+end  
+% Muscle-tendon forces
+lMtilde_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
+lMtilde_opt_ext(1:(d+1):end,:) = lMtilde_opt;
+for nmusi=1:auxdata.NMuscles
+    lMtilde_opt_ext(2:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+nmusi:Nwl:Nw);
+    lMtilde_opt_ext(3:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
+    lMtilde_opt_ext(4:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
+end
 
+% Grid
+% control points
+tgrid = linspace(t0,tf,N+1); % mesh points 
+dtime = zeros(1,d+1);
+for i = 1:d+1
+    dtime(i)=tau_root(i)*((tf-t0)/N);
+end
+% control points and collocation points
+tgrid_ext = zeros(1,(d+1)*N+1);
+for i = 1:N
+    tgrid_ext(((i-1)*(d+1)+1):1:i*(d+1)) = tgrid(i) + dtime;
+end
+tgrid_ext(end) = tf; 
+
+% Save results
+Time.meshPoints = tgrid;
+Time.collocationPoints = tgrid_ext;
+MActivation.meshPoints = a_opt;
+MActivation.collocationPoints = a_opt_ext;  
+lMtilde.meshPoints = lMtilde_opt;
+lMtilde.collocationPoints = lMtilde_opt_ext;  
+lM.meshPoints = lMtilde_opt.*repmat(DatStore.lOpt,length(Time.meshPoints),1);
+lM.collocationPoints = lMtilde_opt_ext.*repmat(DatStore.lOpt,length(Time.collocationPoints),1);
+MExcitation.meshPoints = e_opt;
+RActivation.meshPoints = aT_opt*auxdata.Topt;
+MuscleNames = DatStore.MuscleNames;
+OptInfo = output;
 % Tendon force from lMtilde
-% Interpolation lMT
-lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
-[TForcetilde,TForce] = TendonForce_lMtilde(lMtilde,auxdata.params,lMTinterp);
+lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
+[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtilde.meshPoints,auxdata.params,lMTinterp.meshPoints);
+lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
+[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints);
 end
-

@@ -85,3 +85,20 @@ f_forceEquilibrium_lMtildeState = Function('f_forceEquilibrium_lMtildeState',{a_
 % [Hilldifftest2,FTtest2] = f_forceEquilibrium_lMtildeState(atest,lMtildetest,vMtildetest,lMTtest);
 % assertHill = max(abs(Hilldifftest-Hilldifftest2));
 % assertF = max(abs(FTtest-FTtest2));
+
+%% Muscle activation dynamics
+e_SX = SX.sym('e',auxdata.NMuscles); % Muscle excitations
+a_SX = SX.sym('a',auxdata.NMuscles); % Muscle activations
+dadt_SX = SX(auxdata.NMuscles,1); % Hill equilibrium
+for m = 1:auxdata.NMuscles
+    dadt_SX(m) = ActivationDynamics(e_SX(m),a_SX(m),auxdata.tauAct(m),auxdata.tauDeact(m),auxdata.b);
+end
+f_ActivationDynamics = Function('f_ActivationDynamics',{e_SX,a_SX},{dadt_SX});
+% Test function
+% etest = rand(auxdata.NMuscles,1);
+% atest = rand(auxdata.NMuscles,1);
+% for m = 1:auxdata.NMuscles
+%     [datdttest(m,1)] = ActivationDynamics(etest(m),atest(m),auxdata.tauAct(m),auxdata.tauDeact(m),auxdata.b);
+% end
+% datdttest2 = f_ActivationDynamics(etest,atest);
+% assertdadt = max(abs(datdttest-datdttest2));

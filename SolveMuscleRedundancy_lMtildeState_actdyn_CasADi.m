@@ -180,13 +180,13 @@ tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % de
 auxdata.b = 0.1;   
 
 % Parameters of active muscle force-velocity characteristic
-load ActiveFVParameters.mat
+load('ActiveFVParameters.mat','ActiveFVParameters');
 Fvparam(1) = 1.475*ActiveFVParameters(1); Fvparam(2) = 0.25*ActiveFVParameters(2);
 Fvparam(3) = ActiveFVParameters(3) + 0.75; Fvparam(4) = ActiveFVParameters(4) - 0.027;
 auxdata.Fvparam = Fvparam;
 
 % Parameters of active muscle force-length characteristic
-load Faparam.mat                            
+load('Faparam.mat','Faparam');                            
 auxdata.Faparam = Faparam;
 
 % Parameters of passive muscle force-length characteristic
@@ -495,13 +495,12 @@ for i = 1:auxdata.NMuscles
     a_opt(:,i) = w_opt(NParameters+i:Nwl:Nw);
     lMtilde_opt(:,i) = w_opt(NParameters+auxdata.NMuscles+i:Nwl:Nw);
 end
-
 % Time derivatives of muscle activations
 vA_opt = zeros(N,auxdata.NMuscles);
 for i = 1:auxdata.NMuscles
     vA_opt(:,i) = w_opt(NParameters+NStates+i:Nwl:Nw);
 end
-% reserve actuators
+% Reserve actuators
 aT_opt = zeros(N,auxdata.Ndof);
 for i = 1:auxdata.Ndof
     aT_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+i:Nwl:Nw);

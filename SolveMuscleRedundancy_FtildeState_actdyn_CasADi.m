@@ -369,8 +369,7 @@ for k=0:N-1
         FTtildep    = C(1,j+1)*FTtildek;        
         for r=1:d
             ap       = ap + C(r+1,j+1)*akj{r};
-            FTtildep = FTtildep + C(r+1,j+1)*FTtildekj{r};
-            
+            FTtildep = FTtildep + C(r+1,j+1)*FTtildekj{r};            
         end 
         % Append collocation equations (implicit formulation)
         % Activation dynamics (implicit formulation)  
@@ -401,7 +400,7 @@ for dof = 1:auxdata.Ndof
     index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
     T_sim = f_spNMuscles(MAinterp(k+1,index_sel),FTk) + auxdata.Topt*aTk(dof);   
     g   = {g{:},T_exp-T_sim};
-    lbg  = [lbg; 0];
+    lbg = [lbg; 0];
     ubg = [ubg; 0];
 end
 % activation dynamics constraint
@@ -441,18 +440,6 @@ g   = {g{:}, FTtildek_end-FTtildek, ak_end-ak};
 lbg = [lbg; zeros(2*auxdata.NMuscles,1)];
 ubg = [ubg; zeros(2*auxdata.NMuscles,1)];     
 end
-
-% Assert bounds / IG
-% Lower bounds smaller than upper bounds
-% Design variables
-% assert_bw = isempty(find(lbw <= ubw == 0,1));
-% assert_bwl = isempty(find(lbw < -1 == 1,1));
-% assert_bwu = isempty(find(1 < ubw == 1,1));
-% % Constraints
-% assert_bg = isempty(find(lbg <= ubg == 0,1));
-% % Initial guess within bounds
-% assert_w0_ubw = isempty(find(w0 <= ubw == 0,1));
-% assert_w0_lbw = isempty(find(lbw <= w0 == 0,1));
 
 % Create an NLP solver
 prob = struct('f', J, 'x', vertcat(w{:}), 'g', vertcat(g{:}));
@@ -507,7 +494,7 @@ vA_opt = zeros(N,auxdata.NMuscles);
 for i = 1:auxdata.NMuscles
     vA_opt(:,i) = w_opt(NParameters+NStates+i:Nwl:Nw);
 end
-% reserve actuators
+% Reserve actuators
 aT_opt = zeros(N,auxdata.Ndof);
 for i = 1:auxdata.Ndof
     aT_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+i:Nwl:Nw);
