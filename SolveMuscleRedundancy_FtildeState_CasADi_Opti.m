@@ -48,7 +48,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_CasADi_Opti(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -251,6 +251,7 @@ end
 
 %% CasADi setup
 import casadi.*
+opti = casadi.Opti(); % Create opti instance
 
 % Collocation scheme
 d = 3; % degree of interpolating polynomial
@@ -301,146 +302,87 @@ ubg = [];
 
 % States
 % Muscle activations
-a0              = MX.sym('a0',auxdata.NMuscles);
-w               = [w {a0}];
-lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
-ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(1,1:auxdata.NMuscles)'];
+a = opti.variable(auxdata.NMuscles,N+1);
+amesh = opti.variable(auxdata.NMuscles,d*N);
+opti.subject_to(a_min < a < a_max);
+opti.subject_to(a_min < amesh < a_max);
+opti.set_initial(a,0.2);
+opti.set_initial(amesh,0.2);
 % Muscle-tendon forces
-FTtilde0        = MX.sym('FTtilde0',auxdata.NMuscles);
-w               = [w {FTtilde0}];
-lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
+FTtilde = opti.variable(auxdata.NMuscles,N+1);
+FTtildemesh = opti.variable(auxdata.NMuscles,d*N);
+opti.subject_to(F_min < FTtilde < F_max);
+opti.subject_to(F_min < FTtildemesh < F_max);
+opti.set_initial(FTtilde,0.2);
+opti.set_initial(FTtildemesh,0.2);
+% Controls
+% Muscle excitations
+e = opti.variable(auxdata.NMuscles,N);
+opti.subject_to(e_min < e < e_max);
+% Reserve actuators
+aT = opti.variable(auxdata.Ndof,N);
+opti.subject_to(-1 < aT <1);
+% Time derivative of muscle-tendon forces (states)
+dFTtilde = opti.variable(auxdata.NMuscles,N);
+opti.subject_to(dF_min < dFTtilde < dF_max);
+opti.set_initial(dFTtilde,0.01);
 
-% Initial point
-ak          = a0;
-FTtildek    = FTtilde0;
 
 % Loop over mesh points
-for k=0:N-1
-    % Controls at mesh points (piecewise-constant in mesh intervals): 
-    % e: muscle excitations
-    ek          = MX.sym(['e_' num2str(k)], auxdata.NMuscles);
-    w           = [w {ek}];
-    lbw         = [lbw; bounds.phase.control.lower(1:auxdata.NMuscles)'];
-    ubw         = [ubw; bounds.phase.control.upper(1:auxdata.NMuscles)'];
-    w0          = [w0;  guess.phase.control(k+1,1:auxdata.NMuscles)'];
-    % rA: reserve actuators
-    aTk         = MX.sym(['aT_' num2str(k)], auxdata.Ndof);
-    w           = [w {aTk}];
-    lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
-    ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];
-    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)'];    
-    % dFTtilde: time derivative of muscle-tendon forces (states)
-    dFTtildek   = MX.sym(['dFTtilde_' num2str(k)], auxdata.NMuscles);
-    w           = [w {dFTtildek}];
-    lbw         = [lbw; bounds.phase.control.lower(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
-    ubw         = [ubw; bounds.phase.control.upper(auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)'];
-    w0          = [w0;  guess.phase.control(k+1,auxdata.NMuscles+auxdata.Ndof+1:auxdata.NMuscles+auxdata.Ndof+auxdata.NMuscles)']; 
-    
-    % States at collocation points:     
-    % Muscle activations
-    akj = {};
-    for j=1:d
-        akj{j}  = MX.sym(['	a_' num2str(k) '_' num2str(j)], auxdata.NMuscles);
-        w       = {w{:}, akj{j}};
-        lbw     = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
-        ubw     = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-        w0      = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
-    end   
-    % Muscle-tendon forces
-    FTtildekj = {};
-    for j=1:d
-        FTtildekj{j} = MX.sym(['FTtilde_' num2str(k) '_' num2str(j)], auxdata.NMuscles);
-        w            = {w{:}, FTtildekj{j}};
-        lbw          = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-        ubw          = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-        w0           = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-    end
-    
+for k=1:N
+    ak = a(:,k); FTtildek = FTtilde(:,k);
+    ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
+    dFTtildek = dFTtilde(:,k); aTk = aT(:,k); ek = e(:,k);
+
     % Loop over collocation points
-    ak_end          = D(1)*ak;
-    FTtildek_end    = D(1)*FTtildek;
     for j=1:d
         % Expression of the state derivatives at the collocation points
-        ap          = C(1,j+1)*ak;        
-        FTtildep    = C(1,j+1)*FTtildek;        
-        for r=1:d
-            ap       = ap + C(r+1,j+1)*akj{r};
-            FTtildep = FTtildep + C(r+1,j+1)*FTtildekj{r};            
-        end 
+        ap = ak_colloc*C(:,j+1);
+        FTtildep = FTtildek_colloc*C(:,j+1);
+        
         % Append collocation equations
         % Activation dynamics (explicit formulation)  
-        dadtk   = f_ActivationDynamics(ek,akj{j});
-        g       = {g{:}, (h*dadtk - ap)};
-        lbg     = [lbg; zeros(auxdata.NMuscles,1)];
-        ubg     = [ubg; zeros(auxdata.NMuscles,1)]; 
-        % Contraction dynamics (implicit formulation)            
-        g       = {g{:}, (h*dFTtildek.*auxdata.scaling.dFTtilde-FTtildep)};
-        lbg     = [lbg; zeros(auxdata.NMuscles,1)];
-        ubg     = [ubg; zeros(auxdata.NMuscles,1)];
-        % Add contribution to the end state
-        ak_end = ak_end + D(j+1)*akj{j};  
-        FTtildek_end = FTtildek_end + D(j+1)*FTtildekj{j};        
+        opti.subject_to(h*f_ActivationDynamics(ek,ak_colloc(:,j+1)) - ap == 0);
+
+        % Contraction dynamics (implicit formulation)    
+        opti.subject_to(h*dFTtildek.*auxdata.scaling.dFTtilde - FTtildep == 0)
+
         % Add contribution to the quadrature function
         J = J + ...
-            B(j+1)*f_ssNMuscles(akj{j})*h + ...   
-            auxdata.w1*B(j+1)*f_ssNdof(aTk)*h;
+            B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...   
+            auxdata.w1*B(j+1)*f_ssNdof(aTk')*h;
     end
     
+    % State continuity at mesh transition
+    opti.subject_to(a(:,k+1)== ak_colloc*D);  
+    opti.subject_to(FTtilde(:,k+1) == FTtildek_colloc*D); 
+    
  % Get muscle-tendon forces and derive Hill-equilibrium
-[Hilldiffk,FTk] = f_forceEquilibrium_FtildeState(ak,FTtildek,dFTtildek.*auxdata.scaling.dFTtilde,LMTinterp(k+1,:)',VMTinterp(k+1,:)'); 
+[Hilldiffk,FTk] = f_forceEquilibrium_FtildeState(ak',FTtildek',dFTtildek'.*auxdata.scaling.dFTtilde,LMTinterp(k,:)',VMTinterp(k,:)'); 
 
 % Add path constraints
 % Moment constraints
 for dof = 1:auxdata.Ndof
-    T_exp = IDinterp(k+1,dof);    
+    T_exp = IDinterp(k,dof);    
     index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
-    T_sim = f_spNMuscles(MAinterp(k+1,index_sel),FTk) + auxdata.Topt*aTk(dof);   
-    g   = {g{:},T_exp-T_sim};
-    lbg = [lbg; 0];
-    ubg = [ubg; 0];
+    T_sim = f_spNMuscles(MAinterp(k,index_sel),FTk) + auxdata.Topt*aTk(dof);   
+    opti.subject_to(T_exp-T_sim == 0)
 end     
+
 % Hill-equilibrium constraint
-g               = {g{:},Hilldiffk};
-lbg             = [lbg; zeros(auxdata.NMuscles,1)];
-ubg             = [ubg; zeros(auxdata.NMuscles,1)];
-
-% New NLP variables for states at end of interval
-% Muscle activations
-ak              = MX.sym(['a_' num2str(k+1)], auxdata.NMuscles);
-w               = {w{:}, ak};
-lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
-ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
-% Muscle-tendon forces
-FTtildek        = MX.sym(['FTtilde_' num2str(k+1)], auxdata.NMuscles);
-w               = {w{:}, FTtildek};
-lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
-
-% Add equality constraints (next interval starts with end values of 
-% states from previous interval).
-g   = {g{:}, FTtildek_end-FTtildek, ak_end-ak};
-lbg = [lbg; zeros(2*auxdata.NMuscles,1)];
-ubg = [ubg; zeros(2*auxdata.NMuscles,1)];     
+opti.subject_to(Hilldiffk == 0); 
 end
 
-% Create an NLP solver
-prob = struct('f', J, 'x', vertcat(w{:}), 'g', vertcat(g{:}));
-options.ipopt.max_iter = 10000;
-options.ipopt.tol = 1e-6;
-solver = nlpsol('solver', 'ipopt',prob,options);
-% Create and save diary
-diary('DynamicOptimization_FtildeState_CasADi.txt'); 
-sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw,...
-    'lbg', lbg, 'ubg', ubg);    
-diary off
-w_opt = full(sol.x);
-g_opt = full(sol.g);  
-% Save results
+opti.minimize(J);
+
+optionssol.ipopt.nlp_scaling_method = 'gradient-based'; 
+optionssol.ipopt.linear_solver = 'mumps';
+optionssol.ipopt.tol = 1e-6;
+optionssol.ipopt.max_iter = 10000;
+opti.solver('ipopt',optionssol)
+
+sol = opti.solve();
+
 output.setup.bounds = bounds;
 output.setup.auxdata = auxdata;
 output.setup.guess = guess;
@@ -449,10 +391,10 @@ output.setup.ubw = ubw;
 output.setup.nlp.solver = 'ipopt';
 output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
 output.setup.derivatives.derivativelevel = 'second';
-output.setup.nlp.ipoptoptions.tolerance = options.ipopt.tol;
-output.setup.nlp.ipoptoptions.maxiterations = options.ipopt.max_iter;
-output.solution.w_opt = w_opt;
-output.solution.g_opt = g_opt;
+output.setup.nlp.ipoptoptions.tolerance = optionssol.ipopt.tol;
+output.setup.nlp.ipoptoptions.maxiterations = optionssol.ipopt.max_iter;
+% output.solution.w_opt = w_opt;
+% output.solution.g_opt = g_opt;
 
 %% Extract results
 % Number of design variables
@@ -468,45 +410,32 @@ Nwm = NParameters+NStates+NControls;
 
 % Variables at mesh points
 % Muscle activations and muscle-tendon forces
-a_opt = zeros(N+1,auxdata.NMuscles);
-FTtilde_opt = zeros(N+1,auxdata.NMuscles);
-for i = 1:auxdata.NMuscles
-    a_opt(:,i) = w_opt(NParameters+i:Nwl:Nw);
-    FTtilde_opt(:,i) = w_opt(NParameters+auxdata.NMuscles+i:Nwl:Nw);
-end
+a_opt = sol.value(a)';
+amesh_opt = sol.value(amesh)';
+FTtilde_opt = sol.value(FTtilde)';
+FTtildemesh_opt = sol.value(FTtildemesh)';
 % Muscle excitations
-e_opt = zeros(N,auxdata.NMuscles);
-for i = 1:auxdata.NMuscles
-    e_opt(:,i) = w_opt(NParameters+NStates+i:Nwl:Nw);
-end
+e_opt = sol.value(e)';
 % Reserve actuators
-aT_opt = zeros(N,auxdata.Ndof);
-for i = 1:auxdata.Ndof
-    aT_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+i:Nwl:Nw);
-end
+aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-dFTtilde_opt = zeros(N,auxdata.NMuscles);
-for i = 1:auxdata.NMuscles
-    dFTtilde_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+auxdata.Ndof+i:Nwl:Nw);
-end
+dFTtilde_opt = sol.value(dFTtilde)';
 
-% Variables at collocation points
-% Muscle activations
+% % Variables at collocation points
+% % Muscle activations
 a_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
 a_opt_ext(1:(d+1):end,:) = a_opt;
-for nmusi=1:auxdata.NMuscles
-    a_opt_ext(2:(d+1):end,nmusi) = w_opt(Nwm+nmusi:Nwl:Nw);
-    a_opt_ext(3:(d+1):end,nmusi) = w_opt(Nwm+auxdata.NMuscles+nmusi:Nwl:Nw);
-    a_opt_ext(4:(d+1):end,nmusi) = w_opt(Nwm+auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
-end  
-% Muscle-tendon forces
+
+a_opt_ext(2:(d+1):end,:) = amesh_opt(1:d:end,:);
+a_opt_ext(3:(d+1):end,:) = amesh_opt(2:d:end,:);
+a_opt_ext(4:(d+1):end,:) = amesh_opt(3:d:end,:);
+ 
+% % Muscle-tendon forces
 FTtilde_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
 FTtilde_opt_ext(1:(d+1):end,:) = FTtilde_opt;
-for nmusi=1:auxdata.NMuscles
-    FTtilde_opt_ext(2:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+nmusi:Nwl:Nw);
-    FTtilde_opt_ext(3:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
-    FTtilde_opt_ext(4:(d+1):end,nmusi) = w_opt(Nwm+d*auxdata.NMuscles+auxdata.NMuscles+auxdata.NMuscles+nmusi:Nwl:Nw);
-end
+FTtilde_opt_ext(2:(d+1):end,:) = FTtildemesh_opt(1:d:end,:);
+FTtilde_opt_ext(3:(d+1):end,:) = FTtildemesh_opt(2:d:end,:);
+FTtilde_opt_ext(4:(d+1):end,:) = FTtildemesh_opt(3:d:end,:);
 
 % Grid    
 % Mesh points
