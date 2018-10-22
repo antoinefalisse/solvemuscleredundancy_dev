@@ -313,7 +313,7 @@ w0              = [w0;  guess.phase.state(1,auxdata.NMuscles+1:2*auxdata.NMuscle
 ak          = a0;
 lMtildek    = lMtilde0;
 
-% loop over mesh points
+% Loop over mesh points
 for k=0:N-1
     % Controls at mesh points (piecewise-constant in mesh intervals): 
     % e: muscle excitations
@@ -359,15 +359,14 @@ for k=0:N-1
     ak_end          = D(1)*ak;
     lMtildek_end    = D(1)*lMtildek;
     for j=1:d
-        % Expression for the state derivatives at the collocation point
+        % Expression of the state derivatives at the collocation points
         ap          = C(1,j+1)*ak;        
         lMtildep    = C(1,j+1)*lMtildek;        
         for r=1:d
             ap       = ap + C(r+1,j+1)*akj{r};
-            lMtildep = lMtildep + C(r+1,j+1)*lMtildekj{r};
-            
+            lMtildep = lMtildep + C(r+1,j+1)*lMtildekj{r};            
         end 
-        % Append collocation equations (implicit formulation)
+        % Append collocation equations
         % Activation dynamics (explicit formulation)  
         dadtk   = f_ActivationDynamics(ek,ak);
         g       = {g{:}, (h*dadtk - ap)};
@@ -380,7 +379,7 @@ for k=0:N-1
         % Add contribution to the end state
         ak_end = ak_end + D(j+1)*akj{j};  
         lMtildek_end = lMtildek_end + D(j+1)*lMtildekj{j};        
-        % Add contribution to quadrature function
+        % Add contribution to the quadrature function
         J = J + ...
             B(j+1)*f_ssNMuscles(akj{j})*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk)*h;
@@ -390,7 +389,7 @@ for k=0:N-1
 [Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak,lMtildek,vMtildek,LMTinterp(k+1,:)'); 
 
 % Add path constraints
-% Moments constraint
+% Moment constraints
 for dof = 1:auxdata.Ndof
     T_exp = IDinterp(k+1,dof);    
     index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
@@ -399,7 +398,7 @@ for dof = 1:auxdata.Ndof
     lbg  = [lbg; 0];
     ubg = [ubg; 0];
 end    
-% hill-equilibrium constraint
+% Hill-equilibrium constraint
 g               = {g{:},Hilldiffk};
 lbg             = [lbg; zeros(auxdata.NMuscles,1)];
 ubg             = [ubg; zeros(auxdata.NMuscles,1)];
@@ -455,15 +454,14 @@ output.solution.g_opt = g_opt;
 NStates = 2*auxdata.NMuscles;
 NControls = 2*auxdata.NMuscles+auxdata.Ndof;
 NParameters = 0;
-
-% In the loop
+% Number of design variables (in the loop)
 Nwl = NControls+d*(NStates)+NStates;
-% In total
+% Number of design variables (in total)
 Nw = NParameters+NStates+N*Nwl;
-% Before the variable corresponding to the first collocation point
+% Number of design variables before the variable corresponding to the first collocation point
 Nwm = NParameters+NStates+NControls;
 
-% Control points
+% Variables at mesh points
 % Muscle activations and muscle fiber lengths
 a_opt = zeros(N+1,auxdata.NMuscles);
 lMtilde_opt = zeros(N+1,auxdata.NMuscles);
@@ -487,7 +485,7 @@ for i = 1:auxdata.NMuscles
     vMtilde_opt(:,i) = w_opt(NParameters+NStates+auxdata.NMuscles+auxdata.Ndof+i:Nwl:Nw);
 end
 
-% Collocation points
+% Variables at collocation points
 % Muscle activations
 a_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
 a_opt_ext(1:(d+1):end,:) = a_opt;
@@ -506,13 +504,13 @@ for nmusi=1:auxdata.NMuscles
 end
 
 % Grid
-% control points
-tgrid = linspace(t0,tf,N+1); % mesh points 
+% Mesh points
+tgrid = linspace(t0,tf,N+1); 
 dtime = zeros(1,d+1);
 for i = 1:d+1
     dtime(i)=tau_root(i)*((tf-t0)/N);
 end
-% control points and collocation points
+% Mesh points and collocation points
 tgrid_ext = zeros(1,(d+1)*N+1);
 for i = 1:N
     tgrid_ext(((i-1)*(d+1)+1):1:i*(d+1)) = tgrid(i) + dtime;
@@ -532,7 +530,7 @@ MExcitation.meshPoints = e_opt;
 RActivation.meshPoints = aT_opt*auxdata.Topt;
 MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
-% Tendon force from lMtilde
+% Tendon forces from lMtilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
 [TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtilde.meshPoints,auxdata.params,lMTinterp.meshPoints);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
