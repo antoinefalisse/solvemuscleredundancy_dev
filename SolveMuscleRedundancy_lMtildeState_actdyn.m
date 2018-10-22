@@ -94,6 +94,12 @@ if ~isfield(Misc,'Mesh_Frequency') || isempty(Misc.Mesh_Frequency)
    Misc.Mesh_Frequency=100;
 end
 
+% Round time window to 2 decimals
+time=round(time,2);
+if time(1)==time(2)
+   warning('Time window should be at least 0.01s'); 
+end
+
 % ------------------------------------------------------------------------%
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
