@@ -368,7 +368,7 @@ for k=0:N-1
         end 
         % Append collocation equations
         % Activation dynamics (explicit formulation)  
-        dadtk   = f_ActivationDynamics(ek,ak);
+        dadtk   = f_ActivationDynamics(ek,akj{j});
         g       = {g{:}, (h*dadtk - ap)};
         lbg     = [lbg; zeros(auxdata.NMuscles,1)];
         ubg     = [ubg; zeros(auxdata.NMuscles,1)]; 
