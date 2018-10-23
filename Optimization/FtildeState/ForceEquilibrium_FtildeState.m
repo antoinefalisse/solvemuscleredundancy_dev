@@ -10,7 +10,7 @@ lTs = ones(size(a,1),1)*params(3,:);
 alphao = ones(size(a,1),1)*params(4,:);
 vMmax = ones(size(a,1),1)*params(5,:);
 Atendon = ones(size(a,1),1)*Atendon;
-
+shift = ones(size(a,1),1)*shift;
 
 % Inverse tendon force-length characteristic
 lTtilde = log(5*(fse + 0.25 - shift))./Atendon + 0.995;
@@ -48,7 +48,7 @@ FMtilde2 = b12*exp(-0.5*num2.^2./den2.^2);
 FMltilde = FMtilde1+FMtilde2+FMtilde3;
 
 % Active muscle force-velocity characteristic
-vT = lTs.*dfse./(0.2*Atendon.*exp(Atendon*(lTtilde-0.995)));
+vT = lTs.*dfse./(0.2*Atendon.*exp(Atendon.*(lTtilde-0.995)));
 cos_alpha = (lMT-lTs.*lTtilde)./lM;
 vM = (vMT-vT).*cos_alpha;
 vMtilde = vM./vMmax;
