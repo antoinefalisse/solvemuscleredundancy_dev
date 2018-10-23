@@ -33,6 +33,8 @@ else
     end
 end
 
+Misc.shift = getShift(Misc.Atendon);
+
 % print to screen
 disp('MusclesNames Selected automatically:');
 disp(Misc.MuscleNames_Input');

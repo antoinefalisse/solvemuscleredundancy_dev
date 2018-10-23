@@ -21,7 +21,7 @@ Ftilde = input.phase.state(:,NMuscles+1:end);
 % PATH CONSTRAINTS
 % Hill-equilibrium constraint
 [Hilldiff,F] = ForceEquilibrium_FtildeState(a,Ftilde,dFtilde,splinestruct.LMT,...
-	splinestruct.VMT,params,input.auxdata.Fvparam,input.auxdata.Fpparam,input.auxdata.Faparam,input.auxdata.Atendon);
+	splinestruct.VMT,params,input.auxdata.Fvparam,input.auxdata.Fpparam,input.auxdata.Faparam,input.auxdata.Atendon,input.auxdata.shift);
 
 % Moments constraint
 Topt = 150;
