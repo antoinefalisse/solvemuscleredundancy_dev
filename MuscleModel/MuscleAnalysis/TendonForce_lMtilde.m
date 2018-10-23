@@ -7,6 +7,8 @@ FMo = ones(size(lMtilde,1),1)*params(1,:);
 lMo = ones(size(lMtilde,1),1)*params(2,:);
 lTs = ones(size(lMtilde,1),1)*params(3,:);
 alphao = ones(size(lMtilde,1),1)*params(4,:);
+Atendon = ones(size(lMtilde,1),1)*Atendon;
+shift = ones(size(lMtilde,1),1)*shift;
 
 % Hill-type muscle model: geometric relationships
 lM = lMtilde.*lMo;
