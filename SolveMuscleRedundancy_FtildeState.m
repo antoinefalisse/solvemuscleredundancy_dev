@@ -101,11 +101,11 @@ end
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
     disp('ID path was not specified or the file does not exist, computation ID started');
-    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file');
+    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file')
         error('External loads file was not specified or does not exist, please add the path to the external loads file: Misc.Loads_path');
     else
         %check the output path for the ID results
-        if isfield(Misc,'ID_ResultsPath');
+        if isfield(Misc,'ID_ResultsPath')
             [idpath,~]=fileparts(Misc.ID_ResultsPath);
             if ~isdir(idpath); mkdir(idpath); end
         else 
@@ -174,13 +174,13 @@ tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % de
 auxdata.b = 0.1;                                                            % parameter determining transition smoothness (activation dynamics)
 
 % Parameters of active muscle force-velocity characteristic
-load ActiveFVParameters.mat
+load('ActiveFVParameters.mat','ActiveFVParameters');
 Fvparam(1) = 1.475*ActiveFVParameters(1); Fvparam(2) = 0.25*ActiveFVParameters(2);
 Fvparam(3) = ActiveFVParameters(3) + 0.75; Fvparam(4) = ActiveFVParameters(4) - 0.027;
 auxdata.Fvparam = Fvparam;
 
 % Parameters of active muscle force-length characteristic
-load Faparam.mat                            
+load('Faparam.mat','Faparam');                            
 auxdata.Faparam = Faparam;
 
 % Parameters of passive muscle force-length characteristic
@@ -188,6 +188,7 @@ e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
+auxdata.shift=Misc.shift;
 
 % Problem bounds 
 e_min = 0; e_max = 1;           % bounds on muscle excitation
@@ -313,7 +314,7 @@ OptInfo=output;
 % Muscle fiber length from Ftilde
 % Interpolation lMT
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
-[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp);
+[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 
 end
 
