@@ -51,7 +51,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi_Opti(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -197,6 +197,7 @@ e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
+auxdata.shift=Misc.shift;
 
 % Problem bounds 
 a_min = 0; a_max = 1;               % bounds on muscle activation
@@ -389,7 +390,7 @@ optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
 % Solve
-diary('DynamicOptimization_FtildeState_vA_CasADi.txt'); 
+diary('DynamicOptimization_FtildeState_vA_CasADi_Opti.txt'); 
 sol = opti.solve();
 diary off
 
@@ -479,7 +480,7 @@ MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Muscle fiber lengths from Ftilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
-[lM.meshPoints,lMtilde.meshPoints] = FiberLength_Ftilde(TForcetilde.meshPoints,auxdata.params,lMTinterp.meshPoints);
+[lM.meshPoints,lMtilde.meshPoints] = FiberLength_Ftilde(TForcetilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
-[lM.collocationPoints,lMtilde.collocationPoints] = FiberLength_Ftilde(TForcetilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints);
+[lM.collocationPoints,lMtilde.collocationPoints] = FiberLength_Ftilde(TForcetilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
 end

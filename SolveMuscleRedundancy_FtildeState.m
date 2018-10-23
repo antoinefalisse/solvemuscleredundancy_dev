@@ -314,7 +314,7 @@ OptInfo=output;
 % Muscle fiber length from Ftilde
 % Interpolation lMT
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
-[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterpm,auxdata.shift);
+[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 
 end
 

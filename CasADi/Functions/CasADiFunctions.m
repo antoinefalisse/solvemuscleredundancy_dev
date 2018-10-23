@@ -40,7 +40,7 @@ FT_SX = SX(auxdata.NMuscles,1); % Tendon forces
 lMT_SX = SX.sym('lMT',auxdata.NMuscles); % Muscle-tendon lengths
 vMT_SX = SX.sym('vMT',auxdata.NMuscles); % Muscle-tendon velocities
 for m = 1:auxdata.NMuscles 
-    [Hilldiff_SX(m),FT_SX(m)] = ForceEquilibrium_FtildeState(a_SX(m),FTtilde_SX(m),dFTtilde_SX(m),lMT_SX(m),vMT_SX(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m));        
+    [Hilldiff_SX(m),FT_SX(m)] = ForceEquilibrium_FtildeState(a_SX(m),FTtilde_SX(m),dFTtilde_SX(m),lMT_SX(m),vMT_SX(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m),auxdata.shift(m));        
 end
 f_forceEquilibrium_FtildeState = Function('f_forceEquilibrium_FtildeState',{a_SX,FTtilde_SX,dFTtilde_SX,lMT_SX,vMT_SX,},{Hilldiff_SX,FT_SX});
 % Test function
@@ -69,7 +69,7 @@ Hilldiff_SX = SX(auxdata.NMuscles,1); % Hill equilibrium
 FT_SX = SX(auxdata.NMuscles,1); % Tendon forces
 lMT_SX = SX.sym('lMT',auxdata.NMuscles); % Muscle-tendon lengths
 for m = 1:auxdata.NMuscles     
-    [Hilldiff_SX(m),FT_SX(m)] = ForceEquilibrium_lMtildeState(a_SX(m),lMtilde_SX(m),vMtilde_SX(m),lMT_SX(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m));
+    [Hilldiff_SX(m),FT_SX(m)] = ForceEquilibrium_lMtildeState(a_SX(m),lMtilde_SX(m),vMtilde_SX(m),lMT_SX(m),auxdata.params(:,m),auxdata.Fvparam,auxdata.Fpparam,auxdata.Faparam,auxdata.Atendon(m),auxdata.shift(m));
 end
 f_forceEquilibrium_lMtildeState = Function('f_forceEquilibrium_lMtildeState',{a_SX,lMtilde_SX,vMtilde_SX,lMT_SX},{Hilldiff_SX,FT_SX});
 % Test function

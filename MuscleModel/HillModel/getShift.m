@@ -3,7 +3,7 @@
 % With the standard stiffness (35), the shift is 0. For a different
 % stiffness, the curve is shifted so that the normalized tendon force is
 % the same as with the standard stiffness when the normalized tendon length
-% is 1, i.e. equal to the tendon slack length.
+% is 1.
 
 function shift = getShift(kT)
 
