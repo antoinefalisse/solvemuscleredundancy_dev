@@ -5,6 +5,12 @@
 % direct collocation optimal control problem formulations for solving the 
 % muscle redundancy problem. Annals of Biomedical Engineering (2016).
 %
+% Change with regards to version 0.1: Activation dynamics as described in
+% De Goote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J,
+% De Schutter J. A physiology based inverse dynamic analysis of human gait:
+% potential and perspectives. Computer Methods in Biomechanics and
+% Biomedical Engineering (2009).
+%
 % Change with regards to version 1.1: Use of CasADi instead of GPOPS-II.
 % CasADi is an open-source tool for nonlinear optimization and algorithmic
 % differentiation (see https://web.casadi.org/)
@@ -38,17 +44,14 @@
 %           lMtilde: normalized muscle fiber length
 %           lM: muscle fiber length
 %           MuscleNames: names of muscles
-%           OptInfo: output of GPOPS-II
+%           OptInfo: output
 %           DatStore: structure with data used for solving the optimal
 %           control problem
-
-
-
 %
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_CasADi_Opti(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -100,11 +103,11 @@ end
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
     disp('ID path was not specified or the file does not exist, computation ID started');
-    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file');
+    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file')
         error('External loads file was not specified or does not exist, please add the path to the external loads file: Misc.Loads_path');
     else
         %check the output path for the ID results
-        if isfield(Misc,'ID_ResultsPath');
+        if isfield(Misc,'ID_ResultsPath')
             [idpath,~]=fileparts(Misc.ID_ResultsPath);
             if ~isdir(idpath); mkdir(idpath); end
         else 
@@ -161,8 +164,10 @@ auxdata.NMuscles = DatStore.nMuscles;   % number of muscles
 auxdata.Ndof = DatStore.nDOF;           % number of dofs
 auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
+auxdata.scaling.vA = 100;               % Scaling factor: derivative muscle activation
 auxdata.scaling.dFTtilde = 10;          % Scaling factor: derivative muscle-tendon force
 auxdata.w1 = 1000;                      % Weight objective function
+auxdata.w2 = 0.01;                      % Weight objective function
 auxdata.Topt = 150;                     % Scaling factor: reserve actuators
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
@@ -171,6 +176,8 @@ for i = 1:auxdata.Ndof
 end
 auxdata.DOFNames = DatStore.DOFNames;   % names of dofs
 
+tact = 0.015;
+tdeact = 0.06;
 tau_act = 0.015; auxdata.tauAct = tau_act * ones(1,auxdata.NMuscles);       % activation time constant (activation dynamics)
 tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % deactivation time constant (activation dynamics)
 auxdata.b = 0.1;                                                            % parameter determining transition smoothness (activation dynamics)
@@ -182,7 +189,7 @@ Fvparam(3) = ActiveFVParameters(3) + 0.75; Fvparam(4) = ActiveFVParameters(4) - 
 auxdata.Fvparam = Fvparam;
 
 % Parameters of active muscle force-length characteristic
-load('Faparam.mat','Faparam');                   
+load('Faparam.mat','Faparam');                            
 auxdata.Faparam = Faparam;
 
 % Parameters of passive muscle force-length characteristic
@@ -192,20 +199,20 @@ auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
 
 % Problem bounds 
-e_min = 0; e_max = 1;           % bounds on muscle excitation
-a_min = 0; a_max = 1;           % bounds on muscle activation
-F_min = 0; F_max = 5;           % bounds on normalized tendon force
-dF_min = -50; dF_max = 50;      % bounds on derivative of normalized tendon force
+a_min = 0; a_max = 1;               % bounds on muscle activation
+vA_min = -1/100; vA_max = 1/100;    % bounds on derivative of muscle activation (scaled)
+F_min = 0; F_max = 5;               % bounds on normalized tendon force
+dF_min = -100; dF_max = 100;        % bounds on derivative of normalized tendon force
 
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 bounds.phase.initialtime.lower = t0; bounds.phase.initialtime.upper = t0;
 bounds.phase.finaltime.lower = tf; bounds.phase.finaltime.upper = tf;
 % Controls bounds
-umin = e_min*ones(1,auxdata.NMuscles); umax = e_max*ones(1,auxdata.NMuscles);
+vAmin = vA_min./auxdata.tauDeact; vAmax = vA_max./auxdata.tauAct;
 dFMin = dF_min*ones(1,auxdata.NMuscles); dFMax = dF_max*ones(1,auxdata.NMuscles);
 aTmin = -1*ones(1,auxdata.Ndof); aTmax = 1*ones(1,auxdata.Ndof);
-bounds.phase.control.lower = [umin aTmin dFMin]; bounds.phase.control.upper = [umax aTmax dFMax];
+bounds.phase.control.lower = [vAmin aTmin dFMin]; bounds.phase.control.upper = [vAmax aTmax dFMax];
 % States bounds
 actMin = a_min*ones(1,auxdata.NMuscles); actMax = a_max*ones(1,auxdata.NMuscles);
 F0min = F_min*ones(1,auxdata.NMuscles); F0max = F_max*ones(1,auxdata.NMuscles);
@@ -221,21 +228,17 @@ bounds.phase.integral.upper = 10000*(tf-t0);
 % Path constraints
 HillEquil = zeros(1, auxdata.NMuscles);
 ID_bounds = zeros(1, auxdata.Ndof);
-bounds.phase.path.lower = [ID_bounds,HillEquil]; bounds.phase.path.upper = [ID_bounds,HillEquil];
+act1_lower = zeros(1, auxdata.NMuscles);
+act1_upper = inf * ones(1, auxdata.NMuscles);
+act2_lower = -inf * ones(1, auxdata.NMuscles);
+act2_upper =  ones(1, auxdata.NMuscles)./auxdata.tauAct;
+bounds.phase.path.lower = [ID_bounds,HillEquil,act1_lower,act2_lower]; bounds.phase.path.upper = [ID_bounds,HillEquil,act1_upper,act2_upper];
 
 % Eventgroup
 % Impose mild periodicity
 pera_lower = -1 * ones(1, auxdata.NMuscles); pera_upper = 1 * ones(1, auxdata.NMuscles);
 perFtilde_lower = -1 * ones(1, auxdata.NMuscles); perFtilde_upper = 1 * ones(1, auxdata.NMuscles);
 bounds.eventgroup.lower = [pera_lower perFtilde_lower]; bounds.eventgroup.upper = [pera_upper perFtilde_upper];
-
-% Initial guess
-N = length(DatStore.time);
-guess.phase.time = DatStore.time;
-guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
-guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
-
-guess.phase.integral = 0;
 
 % Spline structures
 for dof = 1:auxdata.Ndof
@@ -318,8 +321,8 @@ opti.set_initial(FTtildemesh,0.2);
 
 % Controls
 % Muscle excitations
-e = opti.variable(auxdata.NMuscles,N);
-opti.subject_to(e_min < e < e_max);
+vA = opti.variable(auxdata.NMuscles,N);
+opti.subject_to(vA_min/tdeact < vA < vA_max/tact);
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);
@@ -328,13 +331,12 @@ dFTtilde = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(dF_min < dFTtilde < dF_max);
 opti.set_initial(dFTtilde,0.01);
 
-
 % Loop over mesh points
 for k=1:N
     ak = a(:,k); FTtildek = FTtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
-    dFTtildek = dFTtilde(:,k); aTk = aT(:,k); ek = e(:,k);
-
+    dFTtildek = dFTtilde(:,k); aTk = aT(:,k); vAk = vA(:,k);
+    
     % Loop over collocation points
     for j=1:d
         % Expression of the state derivatives at the collocation points
@@ -343,17 +345,15 @@ for k=1:N
         
         % Append collocation equations
         % Activation dynamics (explicit formulation)  
-        opti.subject_to(h*f_ActivationDynamics(ek,ak_colloc(:,j+1)) - ap == 0);
-
+        opti.subject_to(h*vAk.*auxdata.scaling.vA - ap == 0);
         % Contraction dynamics (implicit formulation)    
         opti.subject_to(h*dFTtildek.*auxdata.scaling.dFTtilde - FTtildep == 0)
-
         % Add contribution to the quadrature function
         J = J + ...
             B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...   
-            auxdata.w1*B(j+1)*f_ssNdof(aTk')*h;
+            auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ... 
+            auxdata.w2*B(j+1)*f_ssNMuscles(vAk'/auxdata.scaling.vA)*h;
     end
-    
     % State continuity at mesh transition
     opti.subject_to(a(:,k+1)== ak_colloc*D);  
     opti.subject_to(FTtilde(:,k+1) == FTtildek_colloc*D); 
@@ -372,17 +372,26 @@ end
 
 % Hill-equilibrium constraint
 opti.subject_to(Hilldiffk == 0); 
+
+% Activation dynamics constraints
+act1 = vAk*auxdata.scaling.vA + ak/tdeact;
+opti.subject_to(act1 >= 0);
+act2 = vAk*auxdata.scaling.vA + ak/tact;
+opti.subject_to(act2 <= 1/tact); 
 end
 
 opti.minimize(J);
 
+% Create an NLP solver
 optionssol.ipopt.nlp_scaling_method = 'gradient-based'; 
 optionssol.ipopt.linear_solver = 'mumps';
 optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
-
+% Solve
+diary('DynamicOptimization_FtildeState_vA_CasADi.txt'); 
 sol = opti.solve();
+diary off
 
 output.setup.bounds = bounds;
 output.setup.auxdata = auxdata;
@@ -394,10 +403,20 @@ output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
 output.setup.derivatives.derivativelevel = 'second';
 output.setup.nlp.ipoptoptions.tolerance = optionssol.ipopt.tol;
 output.setup.nlp.ipoptoptions.maxiterations = optionssol.ipopt.max_iter;
-% output.solution.w_opt = w_opt;
-% output.solution.g_opt = g_opt;
 
 %% Extract results
+% Number of design variables
+NStates = 2*auxdata.NMuscles;
+NControls = 2*auxdata.NMuscles+auxdata.Ndof;
+NParameters = 0;
+% Number of design variables (in the loop)
+Nwl = NControls+d*(NStates)+NStates;
+% Number of design variables (in total)
+Nw = NParameters+NStates+N*Nwl;
+% Number of design variables before the variable corresponding to the first collocation point
+Nwm = NParameters+NStates+NControls;
+
+% Variables at mesh points
 % Variables at mesh points
 % Muscle activations and muscle-tendon forces
 a_opt = sol.value(a)';
@@ -405,7 +424,7 @@ amesh_opt = sol.value(amesh)';
 FTtilde_opt = sol.value(FTtilde)';
 FTtildemesh_opt = sol.value(FTtildemesh)';
 % Muscle excitations
-e_opt = sol.value(e)';
+vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
@@ -418,12 +437,18 @@ a_opt_ext(1:(d+1):end,:) = a_opt;
 a_opt_ext(2:(d+1):end,:) = amesh_opt(1:d:end,:);
 a_opt_ext(3:(d+1):end,:) = amesh_opt(2:d:end,:);
 a_opt_ext(4:(d+1):end,:) = amesh_opt(3:d:end,:);
-% Muscle-tendon forces
+
+% % Muscle-tendon forces
 FTtilde_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
 FTtilde_opt_ext(1:(d+1):end,:) = FTtilde_opt;
 FTtilde_opt_ext(2:(d+1):end,:) = FTtildemesh_opt(1:d:end,:);
 FTtilde_opt_ext(3:(d+1):end,:) = FTtildemesh_opt(2:d:end,:);
 FTtilde_opt_ext(4:(d+1):end,:) = FTtildemesh_opt(3:d:end,:);
+% Compute muscle excitations from time derivative of muscle activations
+vA_opt_unsc = vA_opt.*repmat(auxdata.scaling.vA,size(vA_opt,1),size(vA_opt,2));
+tact = 0.015;
+tdeact = 0.06;
+e_opt = computeExcitationRaasch(a_opt(1:end-1,:),vA_opt_unsc,ones(1,auxdata.NMuscles)*tdeact,ones(1,auxdata.NMuscles)*tact);
 
 % Grid    
 % Mesh points

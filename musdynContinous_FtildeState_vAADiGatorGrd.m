@@ -10,10 +10,10 @@
 % provided 'AS IS' with NO WARRANTIES OF ANY KIND and no merchantability
 % or fitness for any purpose or application.
 
-function phaseout = musdynContinous_FtildeStateADiGatorGrd(input)
-global ADiGator_musdynContinous_FtildeStateADiGatorGrd
-if isempty(ADiGator_musdynContinous_FtildeStateADiGatorGrd); ADiGator_LoadData(); end
-Gator1Data = ADiGator_musdynContinous_FtildeStateADiGatorGrd.musdynContinous_FtildeStateADiGatorGrd.Gator1Data;
+function phaseout = musdynContinous_FtildeState_vAADiGatorGrd(input)
+global ADiGator_musdynContinous_FtildeState_vAADiGatorGrd
+if isempty(ADiGator_musdynContinous_FtildeState_vAADiGatorGrd); ADiGator_LoadData(); end
+Gator1Data = ADiGator_musdynContinous_FtildeState_vAADiGatorGrd.musdynContinous_FtildeState_vAADiGatorGrd.Gator1Data;
 % ADiGator Start Derivative Computations
 %User Line: % Get input data
 NMuscles = input.auxdata.NMuscles;
@@ -32,63 +32,88 @@ numColPoints.f = size(input.phase.state.f,1);
 %User Line: numColPoints    = size(input.phase.state,1);
 %User Line: % Get controls
 cada1f1 = 1:NMuscles;
-e.dV = input.phase.control.dV(:,Gator1Data.Index6);
-e.f = input.phase.control.f(:,cada1f1);
-%User Line: e   = input.phase.control(:,1:NMuscles);
+cada1f2dV = input.phase.control.dV(:,Gator1Data.Index3);
+cada1f2 = input.phase.control.f(:,cada1f1);
+vA.dV = 100.*cada1f2dV;
+vA.f = 100*cada1f2;
+%User Line: vA   = 100*input.phase.control(:,1:NMuscles);
 cada1f1 = NMuscles + 1;
 cada1f2 = NMuscles + Ndof;
 cada1f3 = cada1f1:cada1f2;
-aT.dV = input.phase.control.dV(:,Gator1Data.Index7);
+aT.dV = input.phase.control.dV(:,Gator1Data.Index4);
 aT.f = input.phase.control.f(:,cada1f3);
 %User Line: aT  = input.phase.control(:,NMuscles+1:NMuscles+Ndof);
 cada1f1 = NMuscles + Ndof;
 cada1f2 = cada1f1 + 1;
 cada1f3 = size(input.phase.control.f,2);
 cada1f4 = cada1f2:cada1f3;
-cada1f5dV = input.phase.control.dV(:,Gator1Data.Index8);
+cada1f5dV = input.phase.control.dV(:,Gator1Data.Index5);
 cada1f5 = input.phase.control.f(:,cada1f4);
 dFtilde.dV = 10.*cada1f5dV;
 dFtilde.f = 10*cada1f5;
 %User Line: dFtilde  = 10*input.phase.control(:,NMuscles+Ndof+1:end);
 %User Line: % Get states
 cada1f1 = 1:NMuscles;
-a.dV = input.phase.state.dV(:,Gator1Data.Index9);
+a.dV = input.phase.state.dV(:,Gator1Data.Index6);
 a.f = input.phase.state.f(:,cada1f1);
 %User Line: a       = input.phase.state(:,1:NMuscles);
 cada1f1 = NMuscles + 1;
 cada1f2 = size(input.phase.state.f,2);
 cada1f3 = cada1f1:cada1f2;
-Ftilde.dV = input.phase.state.dV(:,Gator1Data.Index10);
+Ftilde.dV = input.phase.state.dV(:,Gator1Data.Index7);
 Ftilde.f = input.phase.state.f(:,cada1f3);
 %User Line: Ftilde = input.phase.state(:,NMuscles+1:end);
 %User Line: % PATH CONSTRAINTS
+%User Line: % Activation dynamics - De Groote et al. (2009)
+cada1f1 = size(a.f,1);
+cada1f2 = ones(cada1f1,1);
+cada1f3 = cada1f2*tauDeact;
+cada1f4dV = a.dV./cada1f3;
+cada1f4 = a.f./cada1f3;
+cada1td1 = zeros(size(vA.dV,1),18);
+cada1td1(:,Gator1Data.Index8) = vA.dV;
+cada1td1(:,Gator1Data.Index9) = cada1td1(:,Gator1Data.Index9) + cada1f4dV;
+act1.dV = cada1td1;
+act1.f = vA.f + cada1f4;
+%User Line: act1 = vA + a./(ones(size(a,1),1)*tauDeact);
+cada1f1 = size(a.f,1);
+cada1f2 = ones(cada1f1,1);
+cada1f3 = cada1f2*tauAct;
+cada1f4dV = a.dV./cada1f3;
+cada1f4 = a.f./cada1f3;
+cada1td1 = zeros(size(vA.dV,1),18);
+cada1td1(:,Gator1Data.Index10) = vA.dV;
+cada1td1(:,Gator1Data.Index11) = cada1td1(:,Gator1Data.Index11) + cada1f4dV;
+act2.dV = cada1td1;
+act2.f = vA.f + cada1f4;
+%User Line: act2 = vA + a./(ones(size(a,1),1)*tauAct);
 %User Line: % Hill-equilibrium constraint
-cadainput3_1.dV = a.dV; cadainput3_1.f = a.f;
-%User Line: cadainput3_1 = a;
-cadainput3_2.dV = Ftilde.dV; cadainput3_2.f = Ftilde.f;
-%User Line: cadainput3_2 = Ftilde;
-cadainput3_3.dV = dFtilde.dV; cadainput3_3.f = dFtilde.f;
-%User Line: cadainput3_3 = dFtilde;
-cadainput3_4 = splinestruct.LMT;
-%User Line: cadainput3_4 = splinestruct.LMT;
-cadainput3_5 = splinestruct.VMT;
-%User Line: cadainput3_5 = splinestruct.VMT;
-cadainput3_6 = params;
-%User Line: cadainput3_6 = params;
-cadainput3_7 = input.auxdata.Fvparam;
-%User Line: cadainput3_7 = input.auxdata.Fvparam;
-cadainput3_8 = input.auxdata.Fpparam;
-%User Line: cadainput3_8 = input.auxdata.Fpparam;
-cadainput3_9 = input.auxdata.Faparam;
-%User Line: cadainput3_9 = input.auxdata.Faparam;
-cadainput3_10 = input.auxdata.Atendon;
-%User Line: cadainput3_10 = input.auxdata.Atendon;
-[cadaoutput3_1,cadaoutput3_2] = ADiGator_ForceEquilibrium_FtildeState(cadainput3_1,cadainput3_2,cadainput3_3,cadainput3_4,cadainput3_5,cadainput3_6,cadainput3_7,cadainput3_8,cadainput3_9,cadainput3_10);
+cadainput2_1.dV = a.dV; cadainput2_1.f = a.f;
+%User Line: cadainput2_1 = a;
+cadainput2_2.dV = Ftilde.dV; cadainput2_2.f = Ftilde.f;
+%User Line: cadainput2_2 = Ftilde;
+cadainput2_3.dV = dFtilde.dV; cadainput2_3.f = dFtilde.f;
+%User Line: cadainput2_3 = dFtilde;
+cadainput2_4 = splinestruct.LMT;
+%User Line: cadainput2_4 = splinestruct.LMT;
+cadainput2_5 = splinestruct.VMT;
+%User Line: cadainput2_5 = splinestruct.VMT;
+cadainput2_6 = params;
+%User Line: cadainput2_6 = params;
+cadainput2_7 = input.auxdata.Fvparam;
+%User Line: cadainput2_7 = input.auxdata.Fvparam;
+cadainput2_8 = input.auxdata.Fpparam;
+%User Line: cadainput2_8 = input.auxdata.Fpparam;
+cadainput2_9 = input.auxdata.Faparam;
+%User Line: cadainput2_9 = input.auxdata.Faparam;
+cadainput2_10 = input.auxdata.Atendon;
+%User Line: cadainput2_10 = input.auxdata.Atendon;
+[cadaoutput2_1,cadaoutput2_2] = ADiGator_ForceEquilibrium_FtildeState(cadainput2_1,cadainput2_2,cadainput2_3,cadainput2_4,cadainput2_5,cadainput2_6,cadainput2_7,cadainput2_8,cadainput2_9,cadainput2_10);
 % Call to function: ForceEquilibrium_FtildeState
-Hilldiff.dV = cadaoutput3_1.dV; Hilldiff.f = cadaoutput3_1.f;
-%User Line: Hilldiff = cadaoutput3_1;
-F.dV = cadaoutput3_2.dV; F.f = cadaoutput3_2.f;
-%User Line: F = cadaoutput3_2;
+Hilldiff.dV = cadaoutput2_1.dV; Hilldiff.f = cadaoutput2_1.f;
+%User Line: Hilldiff = cadaoutput2_1;
+F.dV = cadaoutput2_2.dV; F.f = cadaoutput2_2.f;
+%User Line: F = cadaoutput2_2;
 %User Line: % Moments constraint
 Topt.f =  150;
 %User Line: Topt = 150;
@@ -118,7 +143,7 @@ for cadaforcount1 = 1:3
     cada1f3 = 9;
     cada1tf2 = ones(9,1);
     cada1tf1 = zeros(9,9);
-    cada1tf1(Gator1Data.Index12) = cada1tf2(Gator1Data.Index11);
+    cada1tf1(Gator1Data.Index13) = cada1tf2(Gator1Data.Index12);
     cada1f4dV = cada1f2dV*cada1tf1;
     cada1f4 = sum(cada1f2,2);
     cada1td1 = zeros(size(aT.f,1),3);
@@ -128,8 +153,8 @@ for cadaforcount1 = 1:3
     cada1f7dV = Topt.f.*cada1f5dV;
     cada1f7 = Topt.f*cada1f5;
     cada1td1 = zeros(size(cada1f4dV,1),12);
-    cada1td1(:,Gator1Data.Index13) = cada1f4dV;
-    cada1td1(:,Gator1Data.Index14) = cada1td1(:,Gator1Data.Index14) + cada1f7dV;
+    cada1td1(:,Gator1Data.Index14) = cada1f4dV;
+    cada1td1(:,Gator1Data.Index15) = cada1td1(:,Gator1Data.Index15) + cada1f7dV;
     T_sim.dV = cada1td1;
     T_sim.f = cada1f4 + cada1f7;
     %User Line: T_sim=sum(F.*splinestruct.MA(:,index_sel),2) + Topt*aT(:,dof);
@@ -139,157 +164,76 @@ for cadaforcount1 = 1:3
     Tdiff.f(:,dof.f) = cada1f1;
     %User Line: Tdiff(:,dof) =  (T_exp-T_sim);
 end
-cada1td1 = zeros(size(Tdiff.f,1),57);
-cada1td1(:,Gator1Data.Index15) = Tdiff.dV;
-cada1td1(:,Gator1Data.Index16) = Hilldiff.dV;
+cada1td1 = zeros(size(Tdiff.f,1),93);
+cada1td1(:,Gator1Data.Index16) = Tdiff.dV;
+cada1td1(:,Gator1Data.Index17) = Hilldiff.dV;
+cada1td1(:,Gator1Data.Index18) = act1.dV;
+cada1td1(:,Gator1Data.Index19) = act2.dV;
 phaseout.path.dV = cada1td1;
-phaseout.path.f = [Tdiff.f Hilldiff.f];
-%User Line: phaseout.path = [Tdiff Hilldiff];
+phaseout.path.f = [Tdiff.f Hilldiff.f act1.f act2.f];
+%User Line: phaseout.path = [Tdiff Hilldiff act1 act2];
 %User Line: % DYNAMIC CONSTRAINTS
-%User Line: % Activation dynamics
-dadt.f = ones(numColPoints.f,NMuscles);
-%User Line: dadt = ones(numColPoints,NMuscles);
-cadaforvar2.f = 1:NMuscles;
-%User Line: cadaforvar2 = 1:NMuscles;
-dadt.dV = zeros(size(dadt.f,1),18);
-for cadaforcount2 = 1:9
-    m.f = cadaforvar2.f(:,cadaforcount2);
-    %User Line: m = cadaforvar2(:,cadaforcount2);
-    cada1td1 = zeros(size(e.f,1),9);
-    cada1td1(:,logical(Gator1Data.Index3(:,cadaforcount2))) = e.dV(:,nonzeros(Gator1Data.Index3(:,cadaforcount2)));
-    cadainput2_1.dV = cada1td1;
-    cadainput2_1.f = e.f(:,m.f);
-    %User Line: cadainput2_1 = e(:,m);
-    cada1td1 = zeros(size(a.f,1),9);
-    cada1td1(:,logical(Gator1Data.Index4(:,cadaforcount2))) = a.dV(:,nonzeros(Gator1Data.Index4(:,cadaforcount2)));
-    cadainput2_2.dV = cada1td1;
-    cadainput2_2.f = a.f(:,m.f);
-    %User Line: cadainput2_2 = a(:,m);
-    cadainput2_3.f = tauAct(m.f);
-    %User Line: cadainput2_3 = tauAct(m);
-    cadainput2_4.f = tauDeact(m.f);
-    %User Line: cadainput2_4 = tauDeact(m);
-    cadainput2_5 = input.auxdata.b;
-    %User Line: cadainput2_5 = input.auxdata.b;
-    cadaoutput2_1 = ADiGator_ActivationDynamics(cadainput2_1,cadainput2_2,cadainput2_3,cadainput2_4,cadainput2_5);
-    % Call to function: ActivationDynamics
-    dadt.dV(:,logical(Gator1Data.Index5(:,cadaforcount2))) = cadaoutput2_1.dV(:,nonzeros(Gator1Data.Index5(:,cadaforcount2)));
-    dadt.f(:,m.f) = cadaoutput2_1.f;
-    %User Line: dadt(:,m) = cadaoutput2_1;
-end
+%User Line: % Activation dynamics is implicit
 %User Line: % Contraction dynamics is implicit
-cada1td1 = zeros(size(dadt.f,1),27);
-cada1td1(:,Gator1Data.Index17) = dadt.dV;
-cada1td1(:,Gator1Data.Index18) = dFtilde.dV;
+cada1td1 = zeros(size(vA.f,1),18);
+cada1td1(:,Gator1Data.Index20) = vA.dV;
+cada1td1(:,Gator1Data.Index21) = dFtilde.dV;
 phaseout.dynamics.dV = cada1td1;
-phaseout.dynamics.f = [dadt.f dFtilde.f];
-%User Line: phaseout.dynamics = [dadt dFtilde];
+phaseout.dynamics.f = [vA.f dFtilde.f];
+%User Line: phaseout.dynamics = [vA dFtilde];
 %User Line: % OBJECTIVE FUNCTION
 w1.f =  1000;
 %User Line: w1 = 1000;
-cada1f1dV = 2.*e.f.^(2-1).*e.dV;
-cada1f1 = e.f.^2;
+w2.f =  0.01;
+%User Line: w2 = 0.01;
+cada1f1dV = 2.*a.f.^(2-1).*a.dV;
+cada1f1 = a.f.^2;
 cada1tf2 = ones(9,1);
 cada1tf1 = zeros(9,9);
-cada1tf1(Gator1Data.Index20) = cada1tf2(Gator1Data.Index19);
+cada1tf1(Gator1Data.Index23) = cada1tf2(Gator1Data.Index22);
 cada1f2dV = cada1f1dV*cada1tf1;
 cada1f2 = sum(cada1f1,2);
 cada1f3dV = 2.*aT.f.^(2-1).*aT.dV;
 cada1f3 = aT.f.^2;
 cada1tf2 = ones(3,1);
 cada1tf1 = zeros(3,3);
-cada1tf1(Gator1Data.Index22) = cada1tf2(Gator1Data.Index21);
+cada1tf1(Gator1Data.Index25) = cada1tf2(Gator1Data.Index24);
 cada1f4dV = cada1f3dV*cada1tf1;
 cada1f4 = sum(cada1f3,2);
 cada1f5dV = w1.f.*cada1f4dV;
 cada1f5 = w1.f*cada1f4;
 cada1td1 = zeros(size(cada1f2dV,1),12);
-cada1td1(:,Gator1Data.Index23) = cada1f2dV;
-cada1td1(:,Gator1Data.Index24) = cada1td1(:,Gator1Data.Index24) + cada1f5dV;
-phaseout.integrand.dV = cada1td1;
-phaseout.integrand.f = cada1f2 + cada1f5;
-%User Line: phaseout.integrand = sum(e.^2,2)+ w1.*sum(aT.^2,2);
-phaseout.dynamics.dV_size = [18,40];
-phaseout.dynamics.dV_location = Gator1Data.Index25;
-phaseout.integrand.dV_size = 40;
-phaseout.integrand.dV_location = Gator1Data.Index26;
-phaseout.path.dV_size = [12,40];
-phaseout.path.dV_location = Gator1Data.Index27;
-end
-function dadt = ADiGator_ActivationDynamics(e,a,tact,tdeact,b)
-global ADiGator_musdynContinous_FtildeStateADiGatorGrd
-Gator1Data = ADiGator_musdynContinous_FtildeStateADiGatorGrd.ADiGator_ActivationDynamics.Gator1Data;
-% ADiGator Start Derivative Computations
-cada1f2dV = 1.5.*a.dV;
-cada1f2 = 1.5*a.f;
-cada1f3dV = cada1f2dV;
-cada1f3 = 0.5 + cada1f2;
-cada1f5dV = tact.f.*cada1f3dV;
-cada1f5 = tact.f*cada1f3;
-cada1tf2 = cada1f5(:,Gator1Data.Index1);
-d1.dV = -1./cada1tf2.^2.*cada1f5dV;
-d1.f = 1./cada1f5;
-%User Line: d1 = 1./(tact*(0.5+1.5*a));
-cada1f2dV = 1.5.*a.dV;
-cada1f2 = 1.5*a.f;
-cada1f3dV = cada1f2dV;
-cada1f3 = 0.5 + cada1f2;
-d2.dV = cada1f3dV./tdeact.f;
-d2.f = cada1f3/tdeact.f;
-%User Line: d2 = (0.5+1.5*a)/tdeact;
-cada1td1 = zeros(size(e.dV,1),18);
-cada1td1(:,Gator1Data.Index2) = e.dV;
-cada1td1(:,Gator1Data.Index3) = cada1td1(:,Gator1Data.Index3) + -a.dV;
-cada1f1dV = cada1td1;
-cada1f1 = e.f - a.f;
-cada1f3dV = b.*cada1f1dV;
-cada1f3 = b*cada1f1;
-cada1tf1 = cada1f3(:,Gator1Data.Index4);
-cada1f4dV = sech(cada1tf1).^2.*cada1f3dV;
-cada1f4 = tanh(cada1f3);
-f.dV = 0.5.*cada1f4dV;
-f.f = 0.5*cada1f4;
-%User Line: f = 0.5*tanh(b*(e-a));
-cada1f1dV = f.dV;
-cada1f1 = f.f + 0.5;
-cada1tf1 = cada1f1(:,Gator1Data.Index5);
-cada1td1 = zeros(size(d1.dV,1),18);
-cada1td1(:,Gator1Data.Index6) = cada1tf1.*d1.dV;
-cada1tf1 = d1.f(:,Gator1Data.Index7);
-cada1td1 = cada1td1 + cada1tf1.*cada1f1dV;
-cada1f2dV = cada1td1;
-cada1f2 = d1.f.*cada1f1;
-cada1f3dV = -f.dV;
-cada1f3 = uminus(f.f);
-cada1f4dV = cada1f3dV;
-cada1f4 = cada1f3 + 0.5;
-cada1tf1 = cada1f4(:,Gator1Data.Index8);
-cada1td1 = zeros(size(d2.dV,1),18);
-cada1td1(:,Gator1Data.Index9) = cada1tf1.*d2.dV;
-cada1tf1 = d2.f(:,Gator1Data.Index10);
-cada1td1 = cada1td1 + cada1tf1.*cada1f4dV;
-cada1f5dV = cada1td1;
-cada1f5 = d2.f.*cada1f4;
-cada1td1 = cada1f2dV;
-cada1td1 = cada1td1 + cada1f5dV;
+cada1td1(:,Gator1Data.Index26) = cada1f2dV;
+cada1td1(:,Gator1Data.Index27) = cada1td1(:,Gator1Data.Index27) + cada1f5dV;
 cada1f6dV = cada1td1;
 cada1f6 = cada1f2 + cada1f5;
-cada1td1 = zeros(size(e.dV,1),18);
-cada1td1(:,Gator1Data.Index11) = e.dV;
-cada1td1(:,Gator1Data.Index12) = cada1td1(:,Gator1Data.Index12) + -a.dV;
-cada1f7dV = cada1td1;
-cada1f7 = e.f - a.f;
-cada1tf1 = cada1f7(:,Gator1Data.Index13);
-cada1td1 = cada1tf1.*cada1f6dV;
-cada1tf1 = cada1f6(:,Gator1Data.Index14);
-cada1td1 = cada1td1 + cada1tf1.*cada1f7dV;
-dadt.dV = cada1td1;
-dadt.f = cada1f6.*cada1f7;
-%User Line: dadt = (d1.*(f+0.5) + d2.*(-f+0.5)).*(e-a);
+cada1f7dV = vA.dV./100;
+cada1f7 = vA.f/100;
+cada1f8dV = 2.*cada1f7.^(2-1).*cada1f7dV;
+cada1f8 = cada1f7.^2;
+cada1tf2 = ones(9,1);
+cada1tf1 = zeros(9,9);
+cada1tf1(Gator1Data.Index29) = cada1tf2(Gator1Data.Index28);
+cada1f9dV = cada1f8dV*cada1tf1;
+cada1f9 = sum(cada1f8,2);
+cada1f10dV = w2.f.*cada1f9dV;
+cada1f10 = w2.f*cada1f9;
+cada1td1 = zeros(size(cada1f6dV,1),21);
+cada1td1(:,Gator1Data.Index30) = cada1f6dV;
+cada1td1(:,Gator1Data.Index31) = cada1td1(:,Gator1Data.Index31) + cada1f10dV;
+phaseout.integrand.dV = cada1td1;
+phaseout.integrand.f = cada1f6 + cada1f10;
+%User Line: phaseout.integrand = sum(a.^2,2)+ w1.*sum(aT.^2,2)+ w2*sum((vA/100).^2,2);
+phaseout.dynamics.dV_size = [18,40];
+phaseout.dynamics.dV_location = Gator1Data.Index32;
+phaseout.integrand.dV_size = 40;
+phaseout.integrand.dV_location = Gator1Data.Index33;
+phaseout.path.dV_size = [30,40];
+phaseout.path.dV_location = Gator1Data.Index34;
 end
 function [err,FT] = ADiGator_ForceEquilibrium_FtildeState(a,fse,dfse,lMT,vMT,params,Fvparam,Fpparam,Faparam,Atendon)
-global ADiGator_musdynContinous_FtildeStateADiGatorGrd
-Gator1Data = ADiGator_musdynContinous_FtildeStateADiGatorGrd.ADiGator_ForceEquilibrium_FtildeState.Gator1Data;
+global ADiGator_musdynContinous_FtildeState_vAADiGatorGrd
+Gator1Data = ADiGator_musdynContinous_FtildeState_vAADiGatorGrd.ADiGator_ForceEquilibrium_FtildeState.Gator1Data;
 % ADiGator Start Derivative Computations
 cada1f1 = size(a.f,1);
 cada1f2 = ones(cada1f1,1);
@@ -590,7 +534,7 @@ end
 
 
 function ADiGator_LoadData()
-global ADiGator_musdynContinous_FtildeStateADiGatorGrd
-ADiGator_musdynContinous_FtildeStateADiGatorGrd = load('musdynContinous_FtildeStateADiGatorGrd.mat');
+global ADiGator_musdynContinous_FtildeState_vAADiGatorGrd
+ADiGator_musdynContinous_FtildeState_vAADiGatorGrd = load('musdynContinous_FtildeState_vAADiGatorGrd.mat');
 return
 end
