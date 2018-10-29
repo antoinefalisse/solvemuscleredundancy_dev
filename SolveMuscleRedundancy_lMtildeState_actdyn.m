@@ -308,6 +308,16 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_lMtildeStateADiGatorHes;
 
 output = gpops2(setup);
 
+% Delete output files from ADiGator
+delete musdynEndpoint_lMtildeState_vAADiGatorGrd.mat
+delete musdynEndpoint_lMtildeState_vAADiGatorGrd.m
+delete musdynEndpoint_lMtildeState_vAADiGatorHes.mat
+delete musdynEndpoint_lMtildeState_vAADiGatorHes.m
+delete musdynContinous_lMtildeState_vAADiGatorHes.mat
+delete musdynContinous_lMtildeState_vAADiGatorHes.m
+delete musdynContinous_lMtildeState_vAADiGatorGrd.mat
+delete musdynContinous_lMtildeState_vAADiGatorGrd.m
+
 res=output.result.solution.phase(1);
 Time=res.time;
 MActivation=res.state(:,1:auxdata.NMuscles);
