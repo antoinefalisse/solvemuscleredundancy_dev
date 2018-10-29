@@ -108,11 +108,11 @@ end
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
     disp('ID path was not specified or the file does not exist, computation ID started');
-    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file');
+    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file')
         error('External loads file was not specified or does not exist, please add the path to the external loads file: Misc.Loads_path');
     else
         %check the output path for the ID results
-        if isfield(Misc,'ID_ResultsPath');
+        if isfield(Misc,'ID_ResultsPath')
             [idpath,~]=fileparts(Misc.ID_ResultsPath);
             if ~isdir(idpath); mkdir(idpath); end
         else 
@@ -181,13 +181,13 @@ tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % de
 auxdata.b = 0.1;                                                            % parameter determining transition smoothness (activation dynamics)
 
 % Parameters of active muscle force-velocity characteristic
-load ActiveFVParameters.mat
+load('ActiveFVParameters.mat','ActiveFVParameters');
 Fvparam(1) = 1.475*ActiveFVParameters(1); Fvparam(2) = 0.25*ActiveFVParameters(2);
 Fvparam(3) = ActiveFVParameters(3) + 0.75; Fvparam(4) = ActiveFVParameters(4) - 0.027;
 auxdata.Fvparam = Fvparam;
 
 % Parameters of active muscle force-length characteristic
-load Faparam.mat                            
+load('Faparam.mat','Faparam');                            
 auxdata.Faparam = Faparam;
 
 % Parameters of passive muscle force-length characteristic
@@ -322,7 +322,7 @@ TForcetilde=res.state(:,auxdata.NMuscles+1:auxdata.NMuscles*2);
 TForce=TForcetilde.*(ones(size(Time))*DatStore.Fiso);
 vA=100*res.control(:,1:auxdata.NMuscles);
 MExcitation=computeExcitationRaasch(MActivation,vA, auxdata.tauDeact, auxdata.tauAct);
-RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof);
+RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)*150;
 MuscleNames=DatStore.MuscleNames;
 OptInfo=output;
 

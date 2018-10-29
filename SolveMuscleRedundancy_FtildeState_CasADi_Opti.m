@@ -100,11 +100,11 @@ end
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
     disp('ID path was not specified or the file does not exist, computation ID started');
-    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file');
+    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file')
         error('External loads file was not specified or does not exist, please add the path to the external loads file: Misc.Loads_path');
     else
         %check the output path for the ID results
-        if isfield(Misc,'ID_ResultsPath');
+        if isfield(Misc,'ID_ResultsPath')
             [idpath,~]=fileparts(Misc.ID_ResultsPath);
             if ~isdir(idpath); mkdir(idpath); end
         else 
