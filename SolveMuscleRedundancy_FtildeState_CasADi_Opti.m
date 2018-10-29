@@ -191,6 +191,7 @@ e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
+auxdata.shift=Misc.shift;
 
 % Problem bounds 
 e_min = 0; e_max = 1;           % bounds on muscle excitation
@@ -378,13 +379,16 @@ end
 
 opti.minimize(J);
 
+% Create an NLP solver
 optionssol.ipopt.nlp_scaling_method = 'gradient-based'; 
 optionssol.ipopt.linear_solver = 'mumps';
 optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
-
+% Solve
+diary('DynamicOptimization_FtildeState_CasADi_Opti.txt'); 
 sol = opti.solve();
+diary off
 
 output.setup.bounds = bounds;
 output.setup.auxdata = auxdata;
@@ -396,8 +400,6 @@ output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
 output.setup.derivatives.derivativelevel = 'second';
 output.setup.nlp.ipoptoptions.tolerance = optionssol.ipopt.tol;
 output.setup.nlp.ipoptoptions.maxiterations = optionssol.ipopt.max_iter;
-% output.solution.w_opt = w_opt;
-% output.solution.g_opt = g_opt;
 
 %% Extract results
 % Variables at mesh points
@@ -456,7 +458,7 @@ MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Muscle fiber lengths from Ftilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
-[lM.meshPoints,lMtilde.meshPoints] = FiberLength_Ftilde(TForcetilde.meshPoints,auxdata.params,lMTinterp.meshPoints);
+[lM.meshPoints,lMtilde.meshPoints] = FiberLength_Ftilde(TForcetilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
-[lM.collocationPoints,lMtilde.collocationPoints] = FiberLength_Ftilde(TForcetilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints);
+[lM.collocationPoints,lMtilde.collocationPoints] = FiberLength_Ftilde(TForcetilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
 end

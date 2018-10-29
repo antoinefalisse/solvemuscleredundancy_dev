@@ -191,6 +191,7 @@ e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
+auxdata.shift=Misc.shift;
 
 % Problem bounds 
 a_min = 0; a_max = 1;                   % bounds on muscle activation
@@ -321,6 +322,6 @@ OptInfo=output;
 % Tendon force from lMtilde
 % Interpolation lMT
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
-[TForcetilde,TForce] = TendonForce_lMtilde(lMtilde,auxdata.params,lMTinterp);
+[TForcetilde,TForce] = TendonForce_lMtilde(lMtilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 end
 

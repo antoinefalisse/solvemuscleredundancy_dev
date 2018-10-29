@@ -188,6 +188,7 @@ e0 = 0.6; kpe = 4; t50 = exp(kpe * (0.2 - 0.10e1) / e0);
 pp1 = (t50 - 0.10e1); t7 = exp(kpe); pp2 = (t7 - 0.10e1);
 auxdata.Fpparam = [pp1;pp2];
 auxdata.Atendon=Misc.Atendon;
+auxdata.shift=Misc.shift;
 
 % Problem bounds 
 e_min = 0; e_max = 1;           % bounds on muscle excitation
@@ -313,7 +314,7 @@ OptInfo=output;
 % Muscle fiber length from Ftilde
 % Interpolation lMT
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
-[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp);
+[lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 
 end
 

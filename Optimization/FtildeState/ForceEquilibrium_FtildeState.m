@@ -2,7 +2,7 @@
 % All muscle-tendon characteristics are fully described in the publication
 % and its online supplement
 
-function [err, FT] = ForceEquilibrium_FtildeState(a,fse,dfse,lMT,vMT,params,Fvparam,Fpparam,Faparam,Atendon)
+function [err, FT] = ForceEquilibrium_FtildeState(a,fse,dfse,lMT,vMT,params,Fvparam,Fpparam,Faparam,Atendon,shift)
 
 FMo = ones(size(a,1),1)*params(1,:);
 lMo = ones(size(a,1),1)*params(2,:);
@@ -10,10 +10,10 @@ lTs = ones(size(a,1),1)*params(3,:);
 alphao = ones(size(a,1),1)*params(4,:);
 vMmax = ones(size(a,1),1)*params(5,:);
 Atendon = ones(size(a,1),1)*Atendon;
-
+shift = ones(size(a,1),1)*shift;
 
 % Inverse tendon force-length characteristic
-lTtilde = log(5*(fse + 0.25))./Atendon + 0.995;
+lTtilde = log(5*(fse + 0.25 - shift))./Atendon + 0.995;
 
 % Hill-type muscle model: geometric relationships
 lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
@@ -48,7 +48,7 @@ FMtilde2 = b12*exp(-0.5*num2.^2./den2.^2);
 FMltilde = FMtilde1+FMtilde2+FMtilde3;
 
 % Active muscle force-velocity characteristic
-vT = lTs.*dfse./(7*exp(35*(lTtilde-0.995)));
+vT = lTs.*dfse./(0.2*Atendon.*exp(Atendon.*(lTtilde-0.995)));
 cos_alpha = (lMT-lTs.*lTtilde)./lM;
 vM = (vMT-vT).*cos_alpha;
 vMtilde = vM./vMmax;
