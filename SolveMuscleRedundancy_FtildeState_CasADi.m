@@ -168,6 +168,7 @@ auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
 auxdata.scaling.dFTtilde = 10;          % Scaling factor: derivative muscle-tendon force
 auxdata.w1 = 1000;                      % Weight objective function
+auxdata.w2 = 0.01;                      % Weight objective function
 auxdata.Topt = 150;                     % Scaling factor: reserve actuators
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
@@ -391,7 +392,8 @@ for k=0:N-1
         % Add contribution to the quadrature function
         J = J + ...
             B(j+1)*f_ssNMuscles(akj{j})*h + ...   
-            auxdata.w1*B(j+1)*f_ssNdof(aTk)*h;
+            auxdata.w1*B(j+1)*f_ssNdof(aTk)*h + ...
+            auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek)*h;
     end
     
  % Get muscle-tendon forces and derive Hill-equilibrium

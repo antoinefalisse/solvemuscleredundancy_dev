@@ -352,7 +352,8 @@ for k=1:N
         J = J + ...
             B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ... 
-            auxdata.w2*B(j+1)*f_ssNMuscles(vAk')*h;
+            auxdata.w2*B(j+1)*f_ssNMuscles(vAk')*h + ...
+            auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek)*h;
     end
     % State continuity at mesh transition
     opti.subject_to(a(:,k+1)== ak_colloc*D);  
@@ -389,7 +390,7 @@ optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
 % Solve
-diary('DynamicOptimization_FtildeState_vA_CasADi.txt'); 
+diary('DynamicOptimization_FtildeState_vA_CasADi_Opti.txt'); 
 sol = opti.solve();
 diary off
 
