@@ -9,7 +9,7 @@ function shift = getShift(kT)
 
 kT35 = 35;
 shift = 0;
-lTtilda = 1;
+lTtilde = 1;
 fse = (exp(kT35.*(lTtilde - 0.995)))/5 - 0.25 + shift; 
 fse_kt35 = fse;
 
