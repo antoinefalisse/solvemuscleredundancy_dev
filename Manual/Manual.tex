@@ -56,14 +56,27 @@
 \maketitle
 \tableofcontents
 
-\section{Overview}
+\section{Release notes}
 
-The provided MATLAB code solves the muscle redundancy problem using the direct collocation optimal control software GPOPS-II as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} \url{http://link.springer.com/article/10.1007%2Fs10439-016-1591-9}. 
+\subsection{Release 2.1}
+\begin{itemize}
+	\item CasADi was added as an alternative to GPOPS-II and ADiGator (see section \ref{Overview} for details).
+	\item The reserve actuators (RActivation) were unscaled in the output of the main functions.
+	\item The time derivatives of the muscle contraction dynamics states, i.e. normalized muscle fiber velocities or derivatives of normalized tendon forces, were added to the cost function with a small weighting factor to prevent spiky outputs.
+	 \item The tendon stiffness was added as an optional user parameter (see section \ref{Examples} for examples).
+\end{itemize}
+
+
+\section{Overview}
+\label{Overview}
+
+The provided MATLAB code solves the muscle redundancy problem using direct collocation  as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} \url{http://link.springer.com/article/10.1007%2Fs10439-016-1591-9}. 
 \\
 
-From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in \textit{De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives. Computer Methods in Biomechanics and Biomedical Engineering (2009).} \url{http://www.tandfonline.com/doi/full/10.1080/10255840902788587}.  \\
+From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We distributed two different versions of the code: one is using the standard CasADi syntax whereas the other one is using Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and  has an active forum for questions (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
 
-Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
+
+From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in \textit{De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009).} \url{http://www.tandfonline.com/doi/full/10.1080/10255840902788587}. Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
 
 
 \section{Installation Instruction}
@@ -76,8 +89,15 @@ addpath(genpath('C/......./SimTK_optcntrlmuscle'))).
 Several software packages are needed to run the program
 \begin{itemize}
 	\item The OpenSim MATLAB interface is used to generate the inputs to the optimal control problem based on a scaled OpenSim model and the solution of inverse kinematics (providing the solution of inverse dynamics is optional). To this aim, install OpenSim and set up the OpenSim MATLAB interface (OpenSim: \url{https://simtk.org/frs/?group_id=91}, OpenSim API: \url{http://simtk-confluence.stanford.edu:8080/display/OpenSim/Scripting+with+Matlab}).
+	\item Using GPOPS and ADiGator
+	\begin{itemize}
 	\item GPOPS-II is used to solve the optimal control problem using direct collocation (\url{http://www.gpops2.com/}). A one-time 30-day trial license is avaiable for all users who register.
 	\item ADiGator is used for automatic differentiation (\url{https://sourceforge.net/projects/adigator/}).
+	\end{itemize}
+	\item Using CasADi
+	\begin{itemize}
+	\item CasADi is used for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}).
+	\end{itemize}
 \end{itemize}
 
 \section{Main Function}
@@ -171,6 +191,7 @@ To recall, the user should consider extending the time interval by 50-100 ms at 
 The musculotendon properties are fully described in the supplementary materials of the aforementioned publication. Importantly, only the tendon slack length, optimal muscle fiber length, maximal isometric muscle force, optimal pennation angle and maximal muscle fiber contraction velocity are extracted from the referred OpenSim model. Other properties are defined in the code and can be changed if desired. By default, the activation and deactivation time constants are 15 and 60 ms respectively (see tau_act and tau_deact in SolveMuscleRedundancy_$<state>$.m).
 
 \section{Examples}
+\label{Examples}
 
 Four examples are provided in the folder examples.
 \subsection{Walking example De Groote et al. 2016}

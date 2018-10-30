@@ -1,16 +1,18 @@
-\BOOKMARK [1][-]{section.1}{Overview}{}% 1
-\BOOKMARK [1][-]{section.2}{Installation Instruction}{}% 2
-\BOOKMARK [1][-]{section.3}{Main Function}{}% 3
-\BOOKMARK [2][-]{subsection.3.1}{With explicit activation dynamics formulation \(De Groote et al. \(2016\)\)}{section.3}% 4
-\BOOKMARK [2][-]{subsection.3.2}{With implicit activation dynamics formulation \(De Groote et al. \(2009\)\)}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.3}{Input Arguments}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.4}{Output arguments}{section.3}% 7
-\BOOKMARK [1][-]{section.4}{GPOPS-II}{}% 8
-\BOOKMARK [2][-]{subsection.4.1}{Setup}{section.4}% 9
-\BOOKMARK [2][-]{subsection.4.2}{Output}{section.4}% 10
-\BOOKMARK [1][-]{section.5}{Muscle model}{}% 11
-\BOOKMARK [1][-]{section.6}{Examples}{}% 12
-\BOOKMARK [2][-]{subsection.6.1}{Walking example De Groote et al. 2016}{section.6}% 13
-\BOOKMARK [2][-]{subsection.6.2}{Running example De Groote et al. 2016}{section.6}% 14
-\BOOKMARK [2][-]{subsection.6.3}{OpenSim installation example Gait10dof18m}{section.6}% 15
-\BOOKMARK [2][-]{subsection.6.4}{OpenSim installation example Gait23dof54m}{section.6}% 16
+\BOOKMARK [1][-]{section.1}{Release notes}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Release 2.1}{section.1}% 2
+\BOOKMARK [1][-]{section.2}{Overview}{}% 3
+\BOOKMARK [1][-]{section.3}{Installation Instruction}{}% 4
+\BOOKMARK [1][-]{section.4}{Main Function}{}% 5
+\BOOKMARK [2][-]{subsection.4.1}{With explicit activation dynamics formulation \(De Groote et al. \(2016\)\)}{section.4}% 6
+\BOOKMARK [2][-]{subsection.4.2}{With implicit activation dynamics formulation \(De Groote et al. \(2009\)\)}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.3}{Input Arguments}{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.4}{Output arguments}{section.4}% 9
+\BOOKMARK [1][-]{section.5}{GPOPS-II}{}% 10
+\BOOKMARK [2][-]{subsection.5.1}{Setup}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.2}{Output}{section.5}% 12
+\BOOKMARK [1][-]{section.6}{Muscle model}{}% 13
+\BOOKMARK [1][-]{section.7}{Examples}{}% 14
+\BOOKMARK [2][-]{subsection.7.1}{Walking example De Groote et al. 2016}{section.7}% 15
+\BOOKMARK [2][-]{subsection.7.2}{Running example De Groote et al. 2016}{section.7}% 16
+\BOOKMARK [2][-]{subsection.7.3}{OpenSim installation example Gait10dof18m}{section.7}% 17
+\BOOKMARK [2][-]{subsection.7.4}{OpenSim installation example Gait23dof54m}{section.7}% 18
