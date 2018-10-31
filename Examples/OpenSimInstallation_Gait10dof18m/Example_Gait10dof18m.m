@@ -14,7 +14,7 @@ filepath=which('Example_Gait10dof18m.m'); [DirExample,~,~]=fileparts(filepath); 
 addpath(genpath(MainDir));
 
 % Needed Input Arguments
-Datapath='C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference';
+Datapath='C:\OpenSim 3.3\Models\Gait10dof18musc\OutputReference';
 IK_path=fullfile(Datapath,'IK','subject01_walk_IK.mot');
 ID_path=[]; % compute ID from the external loads
 model_path=fullfile(Datapath,'subject01.osim');
