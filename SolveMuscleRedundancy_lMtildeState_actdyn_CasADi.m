@@ -561,8 +561,8 @@ Time.meshPoints = tgrid;
 Time.collocationPoints = tgrid_ext;
 MActivation.meshPoints = a_opt;
 MActivation.collocationPoints = a_opt_ext;  
-lMtilde.meshPoints = lMtilde_opt;
-lMtilde.collocationPoints = lMtilde_opt_ext;  
+lMtildeopt.meshPoints = lMtilde_opt;
+lMtildeopt.collocationPoints = lMtilde_opt_ext;  
 lM.meshPoints = lMtilde_opt.*repmat(DatStore.lOpt,length(Time.meshPoints),1);
 lM.collocationPoints = lMtilde_opt_ext.*repmat(DatStore.lOpt,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
@@ -571,7 +571,7 @@ MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Tendon forces from lMtilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
-[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtildeopt.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
-[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtildeopt.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
 end

@@ -185,6 +185,7 @@ tau_act = 0.015; auxdata.tauAct = tau_act * ones(1,auxdata.NMuscles);       % ac
 tau_deact = 0.06; auxdata.tauDeact = tau_deact * ones(1,auxdata.NMuscles);  % deactivation time constant (activation dynamics)
 auxdata.b = 0.1;   
 
+
 % Parameters of active muscle force-velocity characteristic
 load('ActiveFVParameters.mat','ActiveFVParameters');
 Fvparam(1) = 1.475*ActiveFVParameters(1); Fvparam(2) = 0.25*ActiveFVParameters(2);
@@ -266,7 +267,7 @@ end
 
 %% CasADi setup
 import casadi.*
-opti.casadi.Opti();
+opti = casadi.Opti();
 
 % Collocation scheme
 d = 3; % degree of interpolating polynomial
@@ -334,7 +335,7 @@ opti.set_initial(lMtildemesh, 1);
 % Controls
 % Muscle excitations
 vA = opti.variable(auxdata.NMuscles,N);
-opti.subject_to(vA_min/tdeact < vA < vA_max/tact);
+opti.subject_to(vA_min/tau_deact < vA < vA_max/tau_act);
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);
@@ -344,7 +345,7 @@ opti.subject_to(vMtilde_min < vMtilde < vMtilde_max);
 opti.set_initial(vMtilde,0.01);
 
 % Loop over mesh points
-for k=0:N-1
+for k=1:N
     ak = a(:,k); lMtildek = lMtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; lMtildek_colloc = [lMtildek lMtildemesh(:,(k-1)*d+1:k*d)];
     vMtildek = vMtilde(:,k); aTk = aT(:,k); vAk = vA(:,k);
@@ -372,7 +373,7 @@ for k=0:N-1
     opti.subject_to(lMtilde(:,k+1) == lMtildek_colloc*D); 
     
  % Get muscle-tendon forces and derive Hill-equilibrium
-[Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak',lMtildek',vMtildek',LMTinterp(k+1,:)'); 
+[Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak',lMtildek',vMtildek',LMTinterp(k,:)'); 
 
 % Add path constraints
 % Moment constraints
@@ -387,10 +388,10 @@ end
 opti.subject_to(Hilldiffk == 0); 
 
 % Activation dynamics constraints
-act1 = vAk*auxdata.scaling.vA + ak/tdeact;
+act1 = vAk*auxdata.scaling.vA + ak/tau_deact;
 opti.subject_to(act1 >= 0);
-act2 = vAk*auxdata.scaling.vA + ak/tact;
-opti.subject_to(act2 <= 1/tact); 
+act2 = vAk*auxdata.scaling.vA + ak/tau_act;
+opti.subject_to(act2 <= 1/tau_act); 
 end
 
 opti.minimize(J);
@@ -442,7 +443,7 @@ vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-vMTtilde_opt = sol.value(vMTtilde)';
+vMtilde_opt = sol.value(vMtilde)';
 
 % Variables at collocation points
 % Muscle activations
@@ -484,8 +485,8 @@ Time.meshPoints = tgrid;
 Time.collocationPoints = tgrid_ext;
 MActivation.meshPoints = a_opt;
 MActivation.collocationPoints = a_opt_ext;  
-lMtilde.meshPoints = lMtilde_opt;
-lMtilde.collocationPoints = lMtilde_opt_ext;  
+lMtildeopt.meshPoints = lMtilde_opt;
+lMtildeopt.collocationPoints = lMtilde_opt_ext;  
 lM.meshPoints = lMtilde_opt.*repmat(DatStore.lOpt,length(Time.meshPoints),1);
 lM.collocationPoints = lMtilde_opt_ext.*repmat(DatStore.lOpt,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
@@ -494,7 +495,7 @@ MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Tendon forces from lMtilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
-[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtildeopt.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
-[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtildeopt.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
 end

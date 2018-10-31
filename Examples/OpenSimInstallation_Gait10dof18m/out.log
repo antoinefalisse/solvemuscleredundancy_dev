@@ -1,0 +1,210 @@
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+
+               MODEL: walk_subject01
+         coordinates: 10
+              forces: 18
+           actuators: 18
+             muscles: 18
+            analyses: 0
+              probes: 0
+              bodies: 12
+              joints: 12
+         constraints: 0
+             markers: 39
+         controllers: 0
+  contact geometries: 0
+misc modelcomponents: 0
+Running tool subject01_walk_IK.
+
+Storage: read data file =subject01_walk_grf.mot (nr=1501 nc=19)
+ExternalForce::right
+Data source being set to subject01_walk1_grf.mot
+ExternalForce::left
+Data source being set to subject01_walk1_grf.mot
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+
+
+Low-pass filtering coordinates data with a cutoff frequency of 6...
+
+InverseDynamicsTool: 55 time frames in 0.187s
+
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot.
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+Found 151 state vectors with time stamps ranging from 0 to 2.5.
+Executing the analyses from 0.7 to 1.4...
+Printing results of investigation subject01_walk_IK to C:\Users\u0113530\Documents\MuscleRedundancy\solvemuscleredundancy_dev\Examples\OpenSimInstallation_Gait10dof18m\Results\MuscleAnalysis.
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+
+               MODEL: walk_subject01
+         coordinates: 10
+              forces: 18
+           actuators: 18
+             muscles: 18
+            analyses: 0
+              probes: 0
+              bodies: 12
+              joints: 12
+         constraints: 0
+             markers: 39
+         controllers: 0
+  contact geometries: 0
+misc modelcomponents: 0
+Running tool subject01_walk_IK.
+
+Storage: read data file =subject01_walk_grf.mot (nr=1501 nc=19)
+ExternalForce::right
+Data source being set to subject01_walk1_grf.mot
+ExternalForce::left
+Data source being set to subject01_walk1_grf.mot
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+
+
+Low-pass filtering coordinates data with a cutoff frequency of 6...
+
+InverseDynamicsTool: 55 time frames in 0.201s
+
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot.
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+Found 151 state vectors with time stamps ranging from 0 to 2.5.
+Executing the analyses from 0.7 to 1.4...
+Printing results of investigation subject01_walk_IK to C:\Users\u0113530\Documents\MuscleRedundancy\solvemuscleredundancy_dev\Examples\OpenSimInstallation_Gait10dof18m\Results\MuscleAnalysis.
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+
+               MODEL: walk_subject01
+         coordinates: 10
+              forces: 18
+           actuators: 18
+             muscles: 18
+            analyses: 0
+              probes: 0
+              bodies: 12
+              joints: 12
+         constraints: 0
+             markers: 39
+         controllers: 0
+  contact geometries: 0
+misc modelcomponents: 0
+Running tool subject01_walk_IK.
+
+Storage: read data file =subject01_walk_grf.mot (nr=1501 nc=19)
+ExternalForce::right
+Data source being set to subject01_walk1_grf.mot
+ExternalForce::left
+Data source being set to subject01_walk1_grf.mot
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+
+
+Low-pass filtering coordinates data with a cutoff frequency of 6...
+
+InverseDynamicsTool: 55 time frames in 0.196s
+
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot.
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+Found 151 state vectors with time stamps ranging from 0 to 2.5.
+Executing the analyses from 0.7 to 1.4...
+Printing results of investigation subject01_walk_IK to C:\Users\u0113530\Documents\MuscleRedundancy\solvemuscleredundancy_dev\Examples\OpenSimInstallation_Gait10dof18m\Results\MuscleAnalysis.
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+
+               MODEL: walk_subject01
+         coordinates: 10
+              forces: 18
+           actuators: 18
+             muscles: 18
+            analyses: 0
+              probes: 0
+              bodies: 12
+              joints: 12
+         constraints: 0
+             markers: 39
+         controllers: 0
+  contact geometries: 0
+misc modelcomponents: 0
+Running tool subject01_walk_IK.
+
+Storage: read data file =subject01_walk_grf.mot (nr=1501 nc=19)
+ExternalForce::right
+Data source being set to subject01_walk1_grf.mot
+ExternalForce::left
+Data source being set to subject01_walk1_grf.mot
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+
+
+Low-pass filtering coordinates data with a cutoff frequency of 6...
+
+InverseDynamicsTool: 55 time frames in 0.186s
+
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot.
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+Found 151 state vectors with time stamps ranging from 0 to 2.5.
+Executing the analyses from 0.7 to 1.4...
+Printing results of investigation subject01_walk_IK to C:\Users\u0113530\Documents\MuscleRedundancy\solvemuscleredundancy_dev\Examples\OpenSimInstallation_Gait10dof18m\Results\MuscleAnalysis.
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+
+               MODEL: walk_subject01
+         coordinates: 10
+              forces: 18
+           actuators: 18
+             muscles: 18
+            analyses: 0
+              probes: 0
+              bodies: 12
+              joints: 12
+         constraints: 0
+             markers: 39
+         controllers: 0
+  contact geometries: 0
+misc modelcomponents: 0
+Running tool subject01_walk_IK.
+
+Storage: read data file =subject01_walk_grf.mot (nr=1501 nc=19)
+ExternalForce::right
+Data source being set to subject01_walk1_grf.mot
+ExternalForce::left
+Data source being set to subject01_walk1_grf.mot
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+
+
+Low-pass filtering coordinates data with a cutoff frequency of 6...
+
+InverseDynamicsTool: 55 time frames in 0.192s
+
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot.
+Storage: read data file =C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\IK\subject01_walk_IK.mot (nr=151 nc=11)
+Found 151 state vectors with time stamps ranging from 0 to 2.5.
+Executing the analyses from 0.7 to 1.4...
+Printing results of investigation subject01_walk_IK to C:\Users\u0113530\Documents\MuscleRedundancy\solvemuscleredundancy_dev\Examples\OpenSimInstallation_Gait10dof18m\Results\MuscleAnalysis.
+Updating Model file from 30000 to latest format...
+Loaded model walk_subject01 from file C:\Users\u0113530\Documents\OpenSim\4.0-2018-08-27-ae111a49\Models\Gait10dof18musc\OutputReference\subject01.osim

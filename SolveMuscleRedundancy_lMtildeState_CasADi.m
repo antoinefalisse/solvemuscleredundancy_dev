@@ -166,6 +166,7 @@ auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
 auxdata.scaling.vMtilde = 10;           % Scaling factor: derivative muscle fiber lengths
 auxdata.w1 = 1000;                      % Weight objective function
+auxdata.w2 = 0.01;
 auxdata.Topt = 150;                     % Scaling factor: reserve actuators
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
