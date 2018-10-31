@@ -316,6 +316,16 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 
 output = gpops2(setup);
 
+% Delete output files from ADiGator
+delete musdynEndpoint_FtildeState_vAADiGatorGrd.mat
+delete musdynEndpoint_FtildeState_vAADiGatorGrd.m
+delete musdynEndpoint_FtildeState_vAADiGatorHes.mat
+delete musdynEndpoint_FtildeState_vAADiGatorHes.m
+delete musdynContinous_FtildeState_vAADiGatorHes.mat
+delete musdynContinous_FtildeState_vAADiGatorHes.m
+delete musdynContinous_FtildeState_vAADiGatorGrd.mat
+delete musdynContinous_FtildeState_vAADiGatorGrd.m
+
 res=output.result.solution.phase(1);
 Time=res.time;
 MActivation=res.state(:,1:auxdata.NMuscles);
@@ -323,7 +333,7 @@ TForcetilde=res.state(:,auxdata.NMuscles+1:auxdata.NMuscles*2);
 TForce=TForcetilde.*(ones(size(Time))*DatStore.Fiso);
 vA=100*res.control(:,1:auxdata.NMuscles);
 MExcitation=computeExcitationRaasch(MActivation,vA, auxdata.tauDeact, auxdata.tauAct);
-RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof);
+RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)*150;
 MuscleNames=DatStore.MuscleNames;
 OptInfo=output;
 

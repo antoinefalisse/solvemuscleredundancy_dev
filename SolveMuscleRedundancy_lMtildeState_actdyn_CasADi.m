@@ -108,11 +108,11 @@ end
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
     disp('ID path was not specified or the file does not exist, computation ID started');
-    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file');
+    if ~isfield(Misc,'Loads_path') || isempty(Misc.Loads_path) || ~exist(Misc.Loads_path,'file')
         error('External loads file was not specified or does not exist, please add the path to the external loads file: Misc.Loads_path');
     else
         %check the output path for the ID results
-        if isfield(Misc,'ID_ResultsPath');
+        if isfield(Misc,'ID_ResultsPath')
             [idpath,~]=fileparts(Misc.ID_ResultsPath);
             if ~isdir(idpath); mkdir(idpath); end
         else 
@@ -401,7 +401,8 @@ for k=0:N-1
         J = J + ...
             B(j+1)*f_ssNMuscles(akj{j})*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk)*h + ... 
-            auxdata.w2*B(j+1)*f_ssNMuscles(vAk/auxdata.scaling.vA)*h;
+            auxdata.w2*B(j+1)*f_ssNMuscles(vAk)*h + ... 
+            auxdata.w2*B(j+1)*f_ssNMuscles(vMtildek)*h;
     end
     
  % Get muscle-tendon forces and derive Hill-equilibrium
@@ -560,8 +561,8 @@ Time.meshPoints = tgrid;
 Time.collocationPoints = tgrid_ext;
 MActivation.meshPoints = a_opt;
 MActivation.collocationPoints = a_opt_ext;  
-lMtilde.meshPoints = lMtilde_opt;
-lMtilde.collocationPoints = lMtilde_opt_ext;  
+lMtildeopt.meshPoints = lMtilde_opt;
+lMtildeopt.collocationPoints = lMtilde_opt_ext;  
 lM.meshPoints = lMtilde_opt.*repmat(DatStore.lOpt,length(Time.meshPoints),1);
 lM.collocationPoints = lMtilde_opt_ext.*repmat(DatStore.lOpt,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
@@ -570,7 +571,7 @@ MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Tendon forces from lMtilde
 lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
-[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtildeopt.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
-[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
+[TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtildeopt.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
 end
