@@ -139,6 +139,7 @@ Misc.MuscleAnalysisPath=MuscleAnalysisPath;
 if ~isfield(Misc,'MuscleNames_Input') || isempty(Misc.MuscleNames_Input)    
     Misc=getMuscles4DOFS(Misc);
 end
+% Shift tendon force-length curve as a function of the tendon stiffness
 Misc.shift = getShift(Misc.Atendon);
 [DatStore] = getMuscleInfo(IK_path,ID_path,Misc);
 

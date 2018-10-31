@@ -9,9 +9,6 @@ formulation = 'FtildeState';
 % actdyn = 'DeGroote2016';
 actdyn = 'DeGroote2009';
 
-%% Choose tendon stiffness (need additional user input below))
-tendonStiffness = 'manual'; % 'manual' to change default stiffness value
-
 %% Example
 % add main folder and subfolder to matlab path (installation)
 filepath=which('Example_Gait10dof18m.m'); [DirExample,~,~]=fileparts(filepath); [DirExample2,~,~]=fileparts(DirExample); [MainDir,~]=fileparts(DirExample2);
@@ -30,17 +27,16 @@ Misc.Loads_path=fullfile(Datapath,'ExperimentalData','subject01_walk_grf.xml');
 Misc.ID_ResultsPath=fullfile(Datapath,'ID','inversedynamics.sto');
 
 % Optional Input Arguments
-if strcmp (tendonStiffness,'manual')
-    % Here we show an example of how to adjust the Achilles tendon stiffness
-    % We first add the input argument MuscleNames_Input with ALL muscles 
-    % that actuate the degrees of freedom listed in DofNames_Input
-    Misc.MuscleNames_Input={'hamstrings_r','bifemsh_r','glut_max_r','iliopsoas_r',...
-        'rect_fem_r','vasti_r','gastroc_r','soleus_r','tib_ant_r'}; 
-    % We then change the compliance of the Achilles tendon by changing the 
-    % parameter Atendon of the gastrocnemius and the soleus. The default 
-    % value is 35 and a lower value will result in a more compliant tendon.
-    Misc.Atendon=[35,35,35,35,35,35,15,15,35];
-end
+% Here is an example of how to adjust the Achilles tendon stiffness.
+% We first add the input argument MuscleNames_Input with ALL muscles 
+% that actuate the degrees of freedom listed in DofNames_Input.
+Misc.MuscleNames_Input={'hamstrings_r','bifemsh_r','glut_max_r',...
+    'iliopsoas_r','rect_fem_r','vasti_r','gastroc_r','soleus_r',...
+    'tib_ant_r'}; 
+% We then change the compliance of the Achilles tendon by changing the 
+% parameter Atendon of the gastrocnemius and the soleus. The default 
+% value is 35 and a lower value will result in a more compliant tendon.
+Misc.Atendon=[35,35,35,35,35,35,15,15,35];
 
 %% Solve the problem
 % switch framework
