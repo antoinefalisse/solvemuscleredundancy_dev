@@ -1,12 +1,10 @@
 ## Overview
 
-The provided MATLAB code solves the muscle redundancy problem using the direct collocation optimal control software GPOPS-II as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} [DeGroote2016](http://link.springer.com/article/10.1007%2Fs10439-016-1591-9)
+The provided MATLAB code solves the muscle redundancy problem using the direct collocation optimal control software GPOPS-II as described in *De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016) ([DeGroote2016](http://link.springer.com/article/10.1007%2Fs10439-016-1591-9)).
 
- From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in
+From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in *De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009)* ([DeGroote2009](http://www.tandfonline.com/doi/full/10.1080/10255840902788587)).
 
-- De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009). [DeGroote2009](http://www.tandfonline.com/doi/full/10.1080/10255840902788587)
-
-Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
+Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., 2009) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
 
 ## Installation Instruction
 
@@ -19,8 +17,11 @@ addpath(genpath('C/......./SimTK_optcntrlmuscle'))).
 Several software packages are needed to run the program
 
 - The OpenSim MATLAB interface is used to generate the inputs to the optimal control problem based on a scaled OpenSim model and the solution of inverse kinematics (providing the solution of inverse dynamics is optional). To this aim, install OpenSim and set up the OpenSim MATLAB interface (OpenSim: [https://simtk.org/frs/?group_id=91](https://simtk.org/frs/?group_id=91), OpenSim API: http://simtk-confluence.stanford.edu:8080/display/OpenSim/Scripting+with+Matlab.
-- GPOPS-II is used to solve the optimal control problem using direct collocation (\url{http://www.gpops2.com/}). A one-time 30-day trial license is avaiable for all users who register.
-- ADiGator is used for automatic differentiation https://sourceforge.net/projects/adigator/.
+- GPOPS implementation (v1)
+  - GPOPS-II is used to solve the optimal control problem using direct collocation (http://www.gpops2.com/). A one-time 30-day trial license is avaiable for all users who register.
+  - ADiGator is used for automatic differentiation https://sourceforge.net/projects/adigator/.
+- Casadi implementation (v2)
+  - Casadi is used instead of GPOPS to solve the optimal control problem. Casadi is an open-source tool for nonlinear optimization and algorithmic differentiation (https://web.casadi.org/)
 
 ## Main Function
 
@@ -32,8 +33,6 @@ SolveMuscleRedundancy is the main function of this program and is used to solve 
 - SolveMuscleRedundancy_lMtildeState uses the normalized muscle fiber length as a state
 
 ### With implicit activation dynamics formulation (De Groote et al. (2009))
-
-
 
 - SolveMuscleRedundancy_FtildeState_actdyn uses the normalized tendon force as a state
 - SolveMuscleRedundancy_lMtildeState_actdyn uses the normalized muscle fiber length as a state
@@ -53,7 +52,7 @@ Required Input arguments for SolveMuscleRedundancy
 
 Optional input arguments
 
-- **Misc.***Loads_path*: path to the external loads file (.xml). The program will use the OpenSim libraries to solve the inverse dynamics problem when the required input argument ID_path is empty and Misc.\textit{Loads_path} points to an external loads file.
+- **Misc**.Loads_path: path to the external loads file (.xml). The program will use the OpenSim libraries to solve the inverse dynamics problem when the required input argument ID_path is empty and Misc.\textit{Loads_path} points to an external loads file.
 
 - **Misc**.*ID_ResultsPath*: Path where the inverse dynamics results will be saved when the required input argument *ID_path* is empty.
 
@@ -65,19 +64,17 @@ Optional input arguments
 
 - **Misc**.*f_order_LMT*: order of the butterworth recursive low pass filter applied to the muscle tendon lengths from the muscle analysis (default 6).		
 
-- **Misc.**f_cutoff_dM: cutoff frequency for butterworth recursive low pass filter applied to the muscle moment arms from the muscle analysis (default 6 Hz).
+- **Misc**.f_cutoff_dM: cutoff frequency for butterworth recursive low pass filter applied to the muscle moment arms from the muscle analysis (default 6 Hz).
 
-- **Misc.**f_order_dM: order of the butterworth recursive low pass filter applied to the muscle moment arms from the muscle analysis (default 6).
+- **Misc**.f_order_dM: order of the butterworth recursive low pass filter applied to the muscle moment arms from the muscle analysis (default 6).
 
-- **Misc.**f_cutoff_IK: cutoff frequency for the butterworth recursive low pass filter applied to the inverse kinematics data (default is 6 Hz) when performing the muscle analysis to compute muscle-tendon lengths and moment arms.
+- **Misc**.f_cutoff_IK: cutoff frequency for the butterworth recursive low pass filter applied to the inverse kinematics data (default is 6 Hz) when performing the muscle analysis to compute muscle-tendon lengths and moment arms.
 
 - **Misc**.f_order_IK: order of the butterworth recursive low pass filter applied to the inverse kinematics data (default is 6).
 
 - **Misc**.Mesh_Frequency: Number of mesh interval per second (default is 100, but a denser mesh might be required to obtain the desired accuracy especially for faster motions).
 
   ### Output arguments
-
-
 
 - Time: time vector.
 - MExcitation: optimal muscle excitation (matrix dimension: number of collocation points x number of muscles).

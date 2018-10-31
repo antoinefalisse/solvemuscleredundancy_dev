@@ -131,7 +131,6 @@ for i=1:length(Misc.DofNames)
    ID_Header_inds(i)=find(strcmp([Misc.DofNames{i} '_moment'],ID_header)); 
 end
 
-
 % filter the ID data and store in Datstore.T_exp
 fs=1/mean(diff(t_ID));
 f_cutoff = Misc.f_cutoff_ID;         % [Hz] afsnijfrequentie van de filtering
