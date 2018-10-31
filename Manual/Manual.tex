@@ -50,9 +50,9 @@
 %\makeindex
 \begin{document}
 
-\title{Manual SimTK optcntrlmuscle (v1.1)}
-\author{Antoine Falisse, Maarten Afschrift, Friedl De Groote}
-\date{04/18/2017} 
+\title{Manual SimTK optcntrlmuscle (v2.1)}
+\author{Antoine Falisse, Maarten Afschrift, Tom Van Wouwe, Friedl De Groote}
+\date{05/11/2018} 
 \maketitle
 \tableofcontents
 
@@ -63,7 +63,7 @@
 	\item CasADi was added as an alternative to GPOPS-II and ADiGator (see section \ref{Overview} for details).
 	\item The reserve actuators (RActivation) were unscaled in the output of the main functions.
 	\item The time derivatives of the muscle contraction dynamics states, i.e. normalized muscle fiber velocities or derivatives of normalized tendon forces, were added to the cost function with a small weighting factor to prevent spiky outputs.
-	 \item The tendon stiffness was added as an optional user parameter (see section \ref{Examples} for examples).
+	 \item The tendon stiffness was added as an optional user parameter (see section \ref{Example Gait10dof18m} for example).
 \end{itemize}
 
 
@@ -73,7 +73,7 @@
 The provided MATLAB code solves the muscle redundancy problem using direct collocation  as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} \url{http://link.springer.com/article/10.1007%2Fs10439-016-1591-9}. 
 \\
 
-From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We distributed two different versions of the code: one is using the standard CasADi syntax whereas the other one is using Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and  has an active forum for questions (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
+From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We distributed two different versions of the code: one is using the standard CasADi syntax whereas the other one is using Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and  has an active forum (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
 
 
 From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in \textit{De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009).} \url{http://www.tandfonline.com/doi/full/10.1080/10255840902788587}. Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
@@ -89,12 +89,12 @@ addpath(genpath('C/......./SimTK_optcntrlmuscle'))).
 Several software packages are needed to run the program
 \begin{itemize}
 	\item The OpenSim MATLAB interface is used to generate the inputs to the optimal control problem based on a scaled OpenSim model and the solution of inverse kinematics (providing the solution of inverse dynamics is optional). To this aim, install OpenSim and set up the OpenSim MATLAB interface (OpenSim: \url{https://simtk.org/frs/?group_id=91}, OpenSim API: \url{http://simtk-confluence.stanford.edu:8080/display/OpenSim/Scripting+with+Matlab}).
-	\item Using GPOPS and ADiGator
+	\item Using GPOPS
 	\begin{itemize}
 	\item GPOPS-II is used to solve the optimal control problem using direct collocation (\url{http://www.gpops2.com/}). A one-time 30-day trial license is avaiable for all users who register.
 	\item ADiGator is used for automatic differentiation (\url{https://sourceforge.net/projects/adigator/}).
 	\end{itemize}
-	\item Using CasADi
+	\item Using CasADi (from v2.1)
 	\begin{itemize}
 	\item CasADi is used for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}).
 	\end{itemize}
@@ -102,20 +102,38 @@ Several software packages are needed to run the program
 
 \section{Main Function}
 
-SolveMuscleRedundancy is the main function of this program and is used to solve the muscle redundancy problem. There are four variants of this function:
+SolveMuscleRedundancy is the main function of this program and is used to solve the muscle redundancy problem. There are multiple variants of this function that depend on the chosen optimization package (GPOPS or CasADI) and formulation of the activation dynamics (explicit or implicit).
 
-\subsection{With explicit activation dynamics formulation (De Groote et al. (2016))}
+\subsection{Using GPOPS}
+
+\subsubsection{With explicit activation dynamics formulation (De Groote et al. (2016))}
 
 \begin{itemize}
 \item SolveMuscleRedundancy_FtildeState uses the normalized tendon force as a state
 \item SolveMuscleRedundancy_lMtildeState uses the normalized muscle fiber length as a state
 \end{itemize}
 
-\subsection{With implicit activation dynamics formulation (De Groote et al. (2009))}
+\subsubsection{With implicit activation dynamics formulation (De Groote et al. (2009))}
 
 \begin{itemize}
 \item SolveMuscleRedundancy_FtildeState_actdyn uses the normalized tendon force as a state
 \item SolveMuscleRedundancy_lMtildeState_actdyn uses the normalized muscle fiber length as a state
+\end{itemize}
+
+\subsection{Using CasADi}
+
+\subsubsection{With explicit activation dynamics formulation (De Groote et al. (2016))}
+
+\begin{itemize}
+\item SolveMuscleRedundancy_FtildeState_CasADi uses the normalized tendon force as a state
+\item SolveMuscleRedundancy_lMtildeState_CasADi uses the normalized muscle fiber length as a state
+\end{itemize}
+
+\subsubsection{With implicit activation dynamics formulation (De Groote et al. (2009))}
+
+\begin{itemize}
+\item SolveMuscleRedundancy_FtildeState_actdyn_CasADi uses the normalized tendon force as a state
+\item SolveMuscleRedundancy_lMtildeState_actdyn_CasADi uses the normalized muscle fiber length as a state
 \end{itemize}
 
 
@@ -134,7 +152,6 @@ SolveMuscleRedundancy is the main function of this program and is used to solve 
 	\begin{itemize}
 		\item \textit{DofNames_Input}  is a cell array specifying for which degrees of freedom you want to solve the muscle redundancy problem. Typically the muscle redundancy problem is solved for one leg at a time (there are no muscles spanning both legs).
 		\item \textit{MuscleNames_Input} is a cell array that specifies the muscles to be included in when solving the muscle redundancy problem. All muscles that actuate (i.e. have a moment arm with respect to) the degrees of freedom specified in \textit{DofNames_Input} will be selected by default if this array is empty.
-%		\item \textit{Atendon}: Tendon stiffness for the selected muscles (in the same order as in MuscleNames Input). The default value 35 will be used when left empty.
 	\end{itemize}
 \end{enumerate}
 
@@ -155,6 +172,7 @@ Optional input arguments
 	\item \textbf{Misc}.\textit{f_order_IK}: order of the butterworth recursive low pass filter applied to the inverse kinematics data (default is 6).
 
 	\item \textbf{Misc}.\textit{Mesh_Frequency}: Number of mesh interval per second (default is 100, but a denser mesh might be required to obtain the desired accuracy especially for faster motions).
+	\item \textbf{Misc}.\textit{Atendon}: vector with tendon stiffness for the selected muscles. The order should correspond to \textit{MuscleNames_Input}. The default value is 35 and a lower value corresponds to a more compliant tendon. The default value will be used when left empty. An example is provided in section \ref{Example Gait10dof18m} to set a different stiffness to the Achilles tendon.
 
 \end{enumerate}
 
@@ -175,6 +193,7 @@ Optional input arguments
 	\item DatStore: data structure with input information for the optimal control problem.
 \end{enumerate}
 
+
 \section{GPOPS-II}
 \subsection{Setup}
 
@@ -182,9 +201,18 @@ The GPOPS-II setup is accessible through the function SolveMuscleRedundancy_$<st
 
 \subsection{Output}
 
-The GPOPS-II output, OptInfo, contains all information related to the optimal control problem solution. Convergence to an optimal solution is reached when output.result.nlpinfo is flagged 0 ("EXIT: Optimal solution found" in the command window of MATLAB). The mesh accuracy can be assessed with output.result.maxerrors. Cost functional, control, state (and costate) can be accessed in output.result.solution.phase. \\
+The output variable OptInfo contains all information related to the optimal control problem solution. Convergence to an optimal solution is reached when output.result.nlpinfo is flagged 0 ("EXIT: Optimal solution found" in the command window of MATLAB). The mesh accuracy can be assessed with output.result.maxerrors. Cost functional, control, state (and costate) can be accessed in output.result.solution.phase. \\
 
 To recall, the user should consider extending the time interval by 50-100 ms at the beginning and end of the motion to limit the influence of the unknown initial and final state on the solution. Results from those additional periods should not be considered realistic and will typically result in high muscle activation.
+
+\section{CasADi}
+\subsection{Setup}
+The CasADi setup is accessible through the function SolveMuscleRedundancy_$<state>$_CasADi.m under CasADi setup. The user is referred to the CasADi user guide for setup options.
+
+\subsection{Output}
+The output variable OptInfo contains information related to the optimal control problem solution.
+
+As for GPOPS, the user should consider extending the time interval by 50-100 ms at the beginning and end of the motion to limit the influence of the unknown initial and final state on the solution. Results from those additional periods should not be considered realistic and will typically result in high muscle activation.
 
 \section{Muscle model}
 
@@ -305,6 +333,7 @@ end
 \end{lstlisting}
 
 \subsection{OpenSim installation example Gait10dof18m}
+\label{Example Gait10dof18m}
 
 \begin{lstlisting} [frame=none,basicstyle=\tiny]
 clear all;close all;clc
