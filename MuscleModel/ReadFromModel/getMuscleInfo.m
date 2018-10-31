@@ -124,6 +124,13 @@ DatStore.q_exp=IK_data.data(IK_inds,DOF_inds+1);        % +1 for time vector
 ID_data=importdata(ID_path);
 t_ID=ID_data.data(:,1); t_ID=round(t_ID*10000)/10000;
 
+% get the ID index
+ID_header=ID_data.colheaders;
+ID_Header_inds=size(DOF_inds);
+for i=1:length(Misc.DofNames)
+   ID_Header_inds(i)=find(strcmp([Misc.DofNames{i} '_moment'],ID_header)); 
+end
+
 % filter the ID data and store in Datstore.T_exp
 fs=1/mean(diff(t_ID));
 f_cutoff = Misc.f_cutoff_ID;         % [Hz] afsnijfrequentie van de filtering
@@ -139,6 +146,6 @@ ID_data_int=interp1(ID_data.data(:,1),ID_data.data,IK_data.data(:,1));       % i
 t_ID=ID_data_int(:,1); t_ID=round(t_ID*10000)/10000;
 ind0=find(t_ID>=Misc.time(1),1,'first'); ind_end=find(t_ID<=Misc.time(2),1,'last');
 ID_inds=ind0:ind_end;
-DatStore.T_exp=ID_data_int(ID_inds,DOF_inds+1);          % +1 for time vector
+DatStore.T_exp=ID_data_int(ID_inds,ID_Header_inds);          % +1 for time vector
 
 end
