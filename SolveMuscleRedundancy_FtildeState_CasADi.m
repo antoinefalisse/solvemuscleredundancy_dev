@@ -48,7 +48,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_CasADi_Opti(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -199,11 +199,10 @@ e_min = 0; e_max = 1;           % bounds on muscle excitation
 a_min = 0; a_max = 1;           % bounds on muscle activation
 F_min = 0; F_max = 5;           % bounds on normalized tendon force
 dF_min = -50; dF_max = 50;      % bounds on derivative of normalized tendon force
-
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 
-%% CasADi setup
+% CasADi setup
 import casadi.*
 opti = casadi.Opti(); % Create opti instance
 
@@ -357,7 +356,7 @@ e_opt = sol.value(e)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-dFTtilde_opt = sol.value(dFTtilde)';
+% dFTtilde_opt = sol.value(dFTtilde)';
 
 % Variables at collocation points
 % Muscle activations
