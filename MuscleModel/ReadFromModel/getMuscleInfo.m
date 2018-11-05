@@ -149,9 +149,9 @@ ID_inds=ind0:ind_end;
 DatStore.T_exp=ID_data_int(ID_inds,ID_Header_inds);          % +1 for time vector
 
 % check if size of IK and ID matrices are equal 
-if length(ID_inds) ~= length(IK_inds)
-    warning('There is something wrong the time frames in your IK or ID file');
-    disp(['Time range IK in the solution file: first time frame ' num2str(IK_data.data(1,1)) '  last frame:' num2str(IK_data.data(end,1))]);
-    disp(['Time range ID in the solution file: first time frame ' num2str(ID_data.data(1,1)) '  last frame:' num2str(ID_data.data(end,1))]);
+if length(ID_inds) ~= length(IK_inds)    
+    disp(['Time range IK in the solution file: first time frame ' num2str(IK_data.data(1,1)) '  last time frame:' num2str(IK_data.data(end,1))]);
+    disp(['Time range ID in the solution file: first time frame ' num2str(ID_data.data(1,1)) '  last time frame:' num2str(ID_data.data(end,1))]);
     disp(['Selected time range is: ' num2str(Misc.time)]);
+    error('There is something wrong with the time frames in your IK or ID file');
 end
