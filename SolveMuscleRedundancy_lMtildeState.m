@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
+iar% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -229,7 +229,7 @@ guess.phase.time = DatStore.time;
 guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
 guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
 % Random initial guess
-% guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.2*ones(N,auxdata.NMuscles)];
+% guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
 % guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
@@ -297,7 +297,9 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_lMtildeStateADiGatorHes;
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
 
+diary('DynamicOptimization_lMtildeState.txt'); 
 output = gpops2(setup);
+diary off;
 
 % Delete output files from ADiGator
 delete musdynEndpoint_lMtildeStateADiGatorGrd.mat

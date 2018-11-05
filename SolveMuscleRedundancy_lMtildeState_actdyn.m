@@ -305,8 +305,10 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_lMtildeStateADiGatorHes;
 % PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
+diary('DynamicOptimization_lMtildeState_vA.txt'); 
 
 output = gpops2(setup);
+diary off;
 
 % Delete output files from ADiGator
 delete musdynEndpoint_lMtildeState_vAADiGatorGrd.mat

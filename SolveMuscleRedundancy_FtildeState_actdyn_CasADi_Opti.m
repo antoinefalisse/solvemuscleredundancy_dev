@@ -269,7 +269,7 @@ N = round((tf-t0)*Misc.Mesh_Frequency);
 h = (tf-t0)/N;
 
 % Interpolation
-step = (tf-t0)/(N-1);
+step = (tf-t0)/(N);
 time_opt = t0:step:tf;
 LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
 VMTinterp = zeros(length(time_opt),auxdata.NMuscles);

@@ -270,12 +270,13 @@ N = round((tf-t0)*Misc.Mesh_Frequency);
 h = (tf-t0)/N;
 
 % Interpolation
-step = (tf-t0)/(N-1);
+step = (tf-t0)/(N);
 time_opt = t0:step:tf;
 LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
 for m = 1:auxdata.NMuscles
     [LMTinterp(:,m),~,~] = SplineEval_ppuval(auxdata.LMTSpline(m),time_opt,1);
 end
+
 MAinterp = zeros(length(time_opt),auxdata.Ndof*auxdata.NMuscles);
 IDinterp = zeros(length(time_opt),auxdata.Ndof);
 for dof = 1:auxdata.Ndof
@@ -288,11 +289,15 @@ end
 
 % Initial guess
 % Based on SO
-% guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
-% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
+SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
+SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
+
+guess.phase.control = [SoActInterp(1:N,:) SoRActInterp(1:N,:)./150 0.01*ones(N,auxdata.NMuscles)];
+guess.phase.state =  [SoActInterp ones(N+1,auxdata.NMuscles)];
+
 % Random
-guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+% guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+% guess.phase.state =  [0.2*ones(N+1,auxdata.NMuscles) ones(N+1,auxdata.NMuscles)];
 
 % Empty NLP
 w   = {};
@@ -310,23 +315,25 @@ a = opti.variable(auxdata.NMuscles,N+1);
 amesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(a_min < a < a_max);
 opti.subject_to(a_min < amesh < a_max);
-opti.set_initial(a,0.2);
-opti.set_initial(amesh,0.2);
+opti.set_initial(a,SoActInterp');
+opti.set_initial(amesh,(reshape(permute(repmat(SoActInterp(1:N,:),1,1,3),[3,1,2]),210,9)'));
 % Muscle fiber lengths
 lMtilde = opti.variable(auxdata.NMuscles,N+1);
 lMtildemesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(lMtilde_min < lMtilde < lMtilde_max);
 opti.subject_to(lMtilde_min < lMtildemesh < lMtilde_max);
-opti.set_initial(lMtilde, 1);
-opti.set_initial(lMtildemesh, 1);
+opti.set_initial(lMtilde, ones(N+1,auxdata.NMuscles)');
+opti.set_initial(lMtildemesh, ones(3*N,auxdata.NMuscles)');
 
 % Controls
 % Muscle excitations
 e = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(e_min < e < e_max);
+opti.set_initial(e, SoActInterp(1:N,:)')
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
-opti.subject_to(-1 < aT <1);
+opti.subject_to(-1 < aT < 1);
+opti.set_initial(aT,SoRActInterp(1:N,:)'/150)
 % Time derivative of muscle-tendon forces (states)
 vMtilde = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(vMtilde_min < vMtilde < vMtilde_max);
@@ -352,10 +359,6 @@ for k=1:N
         % Contraction dynamics (implicit formulation)    
         opti.subject_to(h*vMtildek.*auxdata.scaling.vMtilde - lMtildep == 0)   
         % Add contribution to the quadrature function
-%         J = J + ...
-%             B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...   
-%             auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ...
-%             auxdata.w2*B(j+1)*f_ssNMuscles(vMtildek)*h;
         J = J + ...
             B(j+1)*f_ssNMuscles(ek')*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ...
@@ -367,20 +370,20 @@ for k=1:N
     opti.subject_to(a(:,k+1)== ak_colloc*D);  
     opti.subject_to(lMtilde(:,k+1) == lMtildek_colloc*D);
     
- % Get muscle-tendon forces and derive Hill-equilibrium
-[Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak',lMtildek',vMtildek',LMTinterp(k,:)'); 
+    % Get muscle-tendon forces and derive Hill-equilibrium
+    [Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak,lMtildek,vMtildek,LMTinterp(k,:)'); 
+    opti.subject_to(FTk > 5);
+    % Add path constraints
+    % Moment constraints
+    for dof = 1:auxdata.Ndof
+        T_exp = IDinterp(k,dof);    
+        index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
+        T_sim = f_spNMuscles(MAinterp(k,index_sel),FTk) + auxdata.Topt*aTk(dof);   
+        opti.subject_to(T_exp - T_sim == 0);
+    end    
 
-% Add path constraints
-% Moment constraints
-for dof = 1:auxdata.Ndof
-    T_exp = IDinterp(k,dof);    
-    index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
-    T_sim = f_spNMuscles(MAinterp(k,index_sel),FTk) + auxdata.Topt*aTk(dof);   
-    opti.subject_to(T_exp - T_sim == 0);
-end    
-
-% Hill-equilibrium constraint
-opti.subject_to(Hilldiffk == 0); 
+    % Hill-equilibrium constraint
+    opti.subject_to(Hilldiffk == 0); 
     
 end
 
@@ -393,7 +396,7 @@ optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
 % Solve
-diary('DynamicOptimization_FtildeState_CasADi_Opti.txt'); 
+diary('DynamicOptimization_lMtildeState_CasADi_Opti.txt'); 
 sol = opti.solve();
 diary off
 
