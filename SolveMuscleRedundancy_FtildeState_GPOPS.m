@@ -255,7 +255,7 @@ for m = 1:auxdata.NMuscles
 end
 
 % GPOPS setup        
-setup.name = 'DynamicOptimization_FtildeState';
+setup.name = 'DynamicOptimization_FtildeState_GPOPS';
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
