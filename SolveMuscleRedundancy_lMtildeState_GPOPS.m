@@ -41,7 +41,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %

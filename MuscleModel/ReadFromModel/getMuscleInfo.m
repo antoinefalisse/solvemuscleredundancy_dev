@@ -1,23 +1,21 @@
 function [DatStore] = getMuscleInfo(IK_path,ID_path,Misc)
-%   Get_dof_MuscleInfo Selects the DOF that are acuated by muscles specified by the user and selects for those dof the moment arms of the muscles
+%   Get_dof_MuscleInfo selects the DOF that are acuated by muscles specified by the user and selects for those dof the moment arms of the muscles
 %   author: Maarten Afschrift,
-%   Last Update: 12 June 2016
+%   Last Update: 5 November 2018
 
 % load joint kinematics
 [~,Misc.trialName,~]=fileparts(IK_path);
 IK_data=importdata(IK_path);
 Names_IK_dofs=IK_data.colheaders(2:end);
 
-% select the IK information between the time events
+% select the IK information between the selected time frames
 t_IK=IK_data.data(:,1);     t_IK=round(t_IK*10000)/10000; 
 ind0=find(t_IK>=Misc.time(1),1,'first'); ind_end=find(t_IK<=Misc.time(2),1,'last');
 IK_inds=ind0:ind_end; nfr=length(IK_inds);
 
 % filter the kinematics and kinetics
 fs=1/mean(diff(t_IK));
-f_cutoff = Misc.f_cutoff_IK;
-orde = Misc.f_order_IK;
-[B, A] = butter(orde, f_cutoff/(fs/2));
+[B, A] = butter(Misc.f_order_IK, Misc.f_cutoff_IK/(fs/2));
 
 [~,DOFS] = size(IK_data.data);
 for i = 2:DOFS         % filtering time vector not needed (start from 2)
@@ -35,7 +33,7 @@ for i=1:length(Names_IK_dofs)
     % read the Muscle Analysis Result
     dm_Data_temp=importdata(fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Names_IK_dofs{i} '.sto']));
     
-    % get the indexes for the selected muscle Names (only needed in first iteration)
+    % get the indexes for the selected MuscleNames (only needed in first iteration)
     if i==1        
         headers=dm_Data_temp.colheaders;
         %Add a comment to this line
@@ -50,9 +48,10 @@ for i=1:length(Names_IK_dofs)
                 disp(['Warning: The selected muscle ' Misc.MuscleNames_Input{j} ' does not exist in the selected model. This muscles is removed from the program']);                
             end
         end
-        NanMuscles=find(isnan(Inds_muscles));NMuscles_Deleted=length(NanMuscles);
+        NanMuscles=find(isnan(Inds_muscles)); 
+        NMuscles_Deleted=length(NanMuscles);
         Misc.MuscleNames=Misc.MuscleNames_Input(IndsNames_sel);
-        Inds_muscles(isnan(Inds_muscles))=[];                               % Delete the muscles names that are not used by the user
+        Inds_muscles(isnan(Inds_muscles))=[];                               % Delete the muscles names that are not selected by the user
         dM_temp=nan(nfr,length(Names_IK_dofs),length(Misc.MuscleNames));    % pre-allocate moment arms
         
         % read indexes in time frame for muscle analysis
@@ -66,10 +65,8 @@ for i=1:length(Names_IK_dofs)
     if any(any(abs(dM)>0.01));
         Misc.DofNames_muscles{ct}=Names_IK_dofs{i};
         dM_temp(:,i,:)=dM;
-         DOF_inds(ct)=i;
-         ct=ct+1;
-    else
-         %disp(['DOF: ' Names_IK_dofs{i} ' is not actuated by the selected muscles. Removed from analysis']);
+        DOF_inds(ct)=i;
+        ct=ct+1;   
     end     
 end
 DOF_inds(isnan(DOF_inds))=[];       % Remove DOFS that are not actuated by muscles
@@ -97,9 +94,7 @@ dM_raw=dM_temp(:,DOF_inds,:);
 t_dM = dm_Data_temp.data(:,1);
 t_dM=round(t_dM*10000)/10000;
 fs=1/mean(diff(t_dM));
-f_cutoff = Misc.f_cutoff_dM;
-orde = Misc.f_order_dM;
-[B,A] = butter(orde, f_cutoff/(fs/2));
+[B,A] = butter(Misc.f_order_dM, Misc.f_cutoff_dM/(fs/2));
 DatStore.dM = filtfilt(B,A,dM_raw);
 
 % filter Muscle-tendon lengths and store them in DatStore.LMT
@@ -107,18 +102,16 @@ LMT_dat=importdata(fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnal
 LMT_raw=LMT_dat.data(Mus_inds,Inds_muscles);
 t_lMT = LMT_dat.data(:,1);
 t_lMT=round(t_lMT*10000)/10000;
-fs=1/mean(diff(t_lMT));
-f_cutoff = Misc.f_cutoff_lMT;
-orde = Misc.f_order_lMT;
-[B,A] = butter(orde, f_cutoff/(fs/2));
+fs=1/mean(diff(t_lMT));             % sampling frequency
+[B,A] = butter(Misc.f_order_lMT,Misc.f_cutoff_lMT/(fs/2));
 DatStore.LMT = filtfilt(B,A,LMT_raw);
 
 % store various informaiton in the DatStore structure
-DatStore.MuscleNames=Misc.MuscleNames;
-DatStore.DOFNames=Misc.DofNames;
-DatStore.nMuscles=length(Misc.MuscleNames);
-DatStore.nDOF=length(Misc.DofNames);
-DatStore.q_exp=IK_data.data(IK_inds,DOF_inds+1);        % +1 for time vector
+DatStore.MuscleNames = Misc.MuscleNames;
+DatStore.DOFNames    = Misc.DofNames;
+DatStore.nMuscles    = length(Misc.MuscleNames);
+DatStore.nDOF        = length(Misc.DofNames);
+DatStore.q_exp       = IK_data.data(IK_inds,DOF_inds+1);        % +1 for time vector
 
 % Get the ID data
 ID_data=importdata(ID_path);
@@ -133,9 +126,7 @@ end
 
 % filter the ID data and store in Datstore.T_exp
 fs=1/mean(diff(t_ID));
-f_cutoff = Misc.f_cutoff_ID;         % [Hz] afsnijfrequentie van de filtering
-orde = Misc.f_order_ID;
-[B, A] = butter(orde, f_cutoff/(fs/2));
+[B, A] = butter(Misc.f_order_ID, Misc.f_cutoff_ID/(fs/2));
 [~,M] = size(ID_data.data);
 for i = 2:M         % filtering time vector not needed (start from 2)
     ID_data.data(:,i) = filtfilt(B,A,ID_data.data(:,i));
@@ -148,7 +139,7 @@ ind0=find(t_ID>=Misc.time(1),1,'first'); ind_end=find(t_ID<=Misc.time(2),1,'last
 ID_inds=ind0:ind_end;
 DatStore.T_exp=ID_data_int(ID_inds,ID_Header_inds);          % +1 for time vector
 
-% check if size of IK and ID matrices are equal 
+% check if size of IK and ID matrices are equal
 if length(ID_inds) ~= length(IK_inds)    
     disp(['Time range IK in the solution file: first time frame ' num2str(IK_data.data(1,1)) '  last time frame:' num2str(IK_data.data(end,1))]);
     disp(['Time range ID in the solution file: first time frame ' num2str(ID_data.data(1,1)) '  last time frame:' num2str(ID_data.data(end,1))]);
