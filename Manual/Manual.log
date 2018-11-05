@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6630 64-bit) (preloaded format=pdflatex 2018.4.9)  5 NOV 2018 16:51
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6630 64-bit) (preloaded format=pdflatex 2018.4.9)  5 NOV 2018 16:52
 entering extended mode
 **./Manual.tex
 (Manual.tex
@@ -1338,104 +1338,126 @@ Overfull \hbox (802.62581pt too wide) in paragraph at lines 321--322
  []
 
 
-Overfull \hbox (28.22688pt too wide) in paragraph at lines 344--345
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-][][][][][][][][][][][]  
- []
-
-
-Overfull \hbox (19.4269pt too wide) in paragraph at lines 349--351
+Overfull \hbox (19.4269pt too wide) in paragraph at lines 356--357
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][][][][][][][][][][][][][][]  
  []
 
 
-Overfull \hbox (437.42632pt too wide) in paragraph at lines 366--367
+Overfull \hbox (499.02623pt too wide) in paragraph at lines 376--377
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (433.02632pt too wide) in paragraph at lines 368--369
+Overfull \hbox (494.62624pt too wide) in paragraph at lines 378--379
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (807.0258pt too wide) in paragraph at lines 374--375
+Overfull \hbox (868.62572pt too wide) in paragraph at lines 384--385
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (802.62581pt too wide) in paragraph at lines 376--377
+Overfull \hbox (864.22572pt too wide) in paragraph at lines 386--387
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][]  
+ []
+
+
+Overfull \hbox (503.42622pt too wide) in paragraph at lines 394--395
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 [9]
-Overfull \hbox (437.42632pt too wide) in paragraph at lines 414--415
+Overfull \hbox (499.02623pt too wide) in paragraph at lines 396--397
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (433.02632pt too wide) in paragraph at lines 416--417
+Overfull \hbox (873.02571pt too wide) in paragraph at lines 402--403
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (807.0258pt too wide) in paragraph at lines 422--423
+Overfull \hbox (868.62572pt too wide) in paragraph at lines 404--405
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (802.62581pt too wide) in paragraph at lines 424--425
+Overfull \hbox (437.42632pt too wide) in paragraph at lines 444--445
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (437.42632pt too wide) in paragraph at lines 461--462
+Overfull \hbox (433.02632pt too wide) in paragraph at lines 446--447
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (433.02632pt too wide) in paragraph at lines 463--464
+Overfull \hbox (807.0258pt too wide) in paragraph at lines 452--453
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 
-Overfull \hbox (807.0258pt too wide) in paragraph at lines 469--470
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-][][][]  
- []
-
-
-Overfull \hbox (802.62581pt too wide) in paragraph at lines 471--472
+Overfull \hbox (802.62581pt too wide) in paragraph at lines 454--455
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][]  
  []
 
 [10]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 476.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 476.
+Overfull \hbox (437.42632pt too wide) in paragraph at lines 491--492
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][]  
+ []
+
+
+Overfull \hbox (433.02632pt too wide) in paragraph at lines 493--494
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][]  
+ []
+
+
+Overfull \hbox (807.0258pt too wide) in paragraph at lines 499--500
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][]  
+ []
+
+
+Overfull \hbox (802.62581pt too wide) in paragraph at lines 501--502
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][]  
+ []
+
+[11]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 506.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 506.
  (Manual.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 476.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 476.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 506.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 506.
 Package rerunfilecheck Info: File `Manual.out' has not changed.
 (rerunfilecheck)             Checksum: D3EEA6E0ED3A2E1E889AEB757769D54C;1974.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 476.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 506.
  ) 
 Here is how much of TeX's memory you used:
- 31317 strings out of 493305
- 729045 string characters out of 3128498
- 995088 words of memory out of 3000000
- 33973 multiletter control sequences out of 15000+200000
+ 31355 strings out of 493305
+ 729897 string characters out of 3128498
+ 990088 words of memory out of 3000000
+ 33981 multiletter control sequences out of 15000+200000
  18506 words of font info for 68 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  78i,6n,136p,1453b,1793s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -1456,9 +1478,9 @@ ers/u0101727/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
 mti10.pfb><C:/Users/u0101727/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publ
 ic/amsfonts/cm/cmtt10.pfb><C:/Users/u0101727/AppData/Local/Programs/MiKTeX 2.9/
 fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on Manual.pdf (10 pages, 269514 bytes).
+Output written on Manual.pdf (11 pages, 276610 bytes).
 PDF statistics:
- 564 PDF objects out of 1000 (max. 8388607)
- 282 named destinations out of 1000 (max. 500000)
+ 603 PDF objects out of 1000 (max. 8388607)
+ 312 named destinations out of 1000 (max. 500000)
  229 words of extra memory for PDF output out of 10000 (max. 10000000)
 
