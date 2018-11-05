@@ -94,7 +94,7 @@ Several software packages are needed to run the program
 	\item GPOPS-II is used to solve the optimal control problem using direct collocation (\url{http://www.gpops2.com/}). A one-time 30-day trial license is avaiable for all users who register.
 	\item ADiGator is used for automatic differentiation (\url{https://sourceforge.net/projects/adigator/}).
 	\end{itemize}
-	\item Using CasADi (from v2.1)
+	\item Using CasADi
 	\begin{itemize}
 	\item CasADi is used for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}).
 	\end{itemize}
@@ -157,7 +157,7 @@ SolveMuscleRedundancy is the main function of this program and is used to solve 
 
 \textbf{Optional input arguments for SolveMuscleRedundancy}
 \begin{enumerate}
-	\item \textbf{Misc}.\textit{Loads_path}:directory and filename of the external loads (.xml file). The program will use the OpenSim libraries to solve the inverse dynamics problem when the required input argument ID_path is empty and Misc.\textit{Loads_path} points to an external loads file.
+	\item \textbf{Misc}.\textit{Loads_path}: directory and filename of the external loads (.xml file). The program will use the OpenSim libraries to solve the inverse dynamics problem when the required input argument ID_path is empty and Misc.\textit{Loads_path} points to an external loads file.
 	
 	\item \textbf{Misc}.\textit{ID_ResultsPath}: directory where the inverse dynamics results will be saved when the input argument \textit{ID_path} is left empty.
 	
@@ -270,61 +270,6 @@ The musculotendon properties are fully described in the supplementary materials 
 Four examples are provided in the folder examples.
 \subsection{Walking example De Groote et al. 2016}
 \begin{lstlisting}[frame=none,basicstyle=\tiny]
-clear all; close all; clc
-%% Choose formulation
-% formulation = 'lMtildeState';
-formulation = 'FtildeState';
-%% Choose activation dynamics
-% actdyn = 'DeGroote2016';
-actdyn = 'DeGroote2009';
-%% Example
-% add main folder and subfolder to matlab path (installation)
-filepath=which('Walking_DeGrooteetal2016.m');
-[DirExample_Walking,~,~]=fileparts(filepath); [DirExample,~]=fileparts(DirExample_Walking);[MainDir,~]=fileparts(DirExample);
-addpath(genpath(MainDir));
-
-% Needed Input Arguments
-IK_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','inverse_kinematics.mot');
-ID_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','inverse_dynamics.sto');
-model_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','subject01.osim');
-time=[0.516 1.95]; % Right stance phase (+50ms beginning and end of time interval, more details see manual and publication)
-OutPath=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','Results');
-
-Misc.MuscleNames_Input={}; % Selects all muscles for the Input DOFS when this is left empty.
-Misc.DofNames_Input={'ankle_angle_r','knee_angle_r','hip_flexion_r','hip_rotation_r','hip_adduction_r'};
-
-% Optional Input Arguments
-Misc.f_cutoff_ID = 6;     % cutoff frequency filtering ID
-Misc.f_order_ID = 4;      % order frequency filtering ID
-Misc.f_cutoff_lMT = 6;    % cutoff frequency filtering lMT
-Misc.f_order_lMT = 4;     % order frequency filtering lMT
-Misc.f_cutoff_dM= 6;      % cutoff frequency filtering MA
-Misc.f_order_dM = 4;      % order frequency filtering MA
-Misc.f_cutoff_IK= 6;      % cutoff frequency filtering IK
-Misc.f_order_IK = 4;      % order frequency filtering IK
-Misc.Atendon = [];        % Tendon Stiffness for the selected muscles
-%% Solve the problem
-switch actdyn
-    case 'DeGroote2016' % Activation dynamics from De Groote et al. (2016)      
-        switch formulation
-            case 'lMtildeState'
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
-        end
-        
-    case 'DeGroote2009' % Activation dynamics from De Groote et al. (2009) 
-        switch formulation
-            case 'lMtildeState'
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_lMtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_FtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
-        end
-end
-\end{lstlisting}
-
-\subsection{Running example De Groote et al. 2016}
-\begin{lstlisting}[frame=none,basicstyle=\tiny]
 clear all;close all;clc
 
 %% Choose optimization framework
@@ -343,7 +288,8 @@ formulation_actdyn = 'DeGroote2009';
 % Add main folder and subfolder to matlab path (installation)
 filepath=which('Walking_DeGrooteetal2016.m');
 [DirExample_Walking,~,~]=fileparts(filepath); 
-[DirExample,~]=fileparts(DirExample_Walking);[MainDir,~]=fileparts(DirExample);
+[DirExample,~]=fileparts(DirExample_Walking);
+[MainDir,~]=fileparts(DirExample);
 addpath(genpath(MainDir));
 
 % Needed Input Arguments
@@ -351,7 +297,7 @@ IK_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','Wa
 ID_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','Walking_ID.sto');
 model_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','WalkingData','subject1.osim');
 time=[0.516 1.95]; % Right stance phase (+50ms beginning and end of time interval, more details see manual and publication)
-OutPath=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','Results');
+Out_path=fullfile(MainDir,'Examples','Walking_DeGrooteetal2016','Results');
 
 Misc.DofNames_Input={'ankle_angle_r','knee_angle_r','hip_flexion_r','hip_rotation_r','hip_adduction_r'};
 Misc.MuscleNames_Input={}; % Selects all muscles for input DOFs when empty
@@ -373,17 +319,33 @@ switch framework
             case 'DeGroote2016'     
                 switch formulation_contdyn
                     case 'lMtildeState'
-                        [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                     case 'FtildeState'   
-                        [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                 end
 
             case 'DeGroote2009' 
                 switch formulation_contdyn
                     case 'lMtildeState'
-                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                     case 'FtildeState'   
-                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                 end
         end
     case 'CasADi'
@@ -391,17 +353,151 @@ switch framework
             case 'DeGroote2016'      
                 switch formulation_contdyn
                     case 'lMtildeState'
-                        [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                     case 'FtildeState'   
-                        [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                 end
 
             case 'DeGroote2009'
                 switch formulation_contdyn
                     case 'lMtildeState'
-                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                     case 'FtildeState'   
-                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+        end
+end
+
+\end{lstlisting}
+
+\subsection{Running example De Groote et al. 2016}
+\begin{lstlisting}[frame=none,basicstyle=\tiny]
+clear all;close all;clc
+
+%% Choose optimization framework
+% framework = 'GPOPS';
+framework = 'CasADi';
+
+%% Choose contraction dynamics formulation
+% formulation_contdyn = 'lMtildeState';
+formulation_contdyn = 'FtildeState';
+
+%% Choose activation dynamics formulation
+% formulation_actdyn = 'DeGroote2016';
+formulation_actdyn = 'DeGroote2009';
+
+%% Example
+% Add main folder and subfolder to matlab path (installation)
+filepath=which('Running_DeGrooteetal2016.m');
+[DirExample_Running,~,~]=fileparts(filepath); 
+[DirExample,~]=fileparts(DirExample_Running);
+[MainDir,~]=fileparts(DirExample);
+addpath(genpath(MainDir));
+
+% Needed Input Arguments
+IK_path=fullfile(MainDir,'Examples','Running_DeGrooteetal2016','RunningData','Running_IK.mot');
+ID_path=fullfile(MainDir,'Examples','Running_DeGrooteetal2016','RunningData','Running_ID.sto');
+model_path=fullfile(MainDir,'Examples','Running_DeGrooteetal2016','RunningData','subject1.osim');
+time=[0.05 0.98]; % Right stance phase (+50ms beginning and end of time interval, more details see manual and publication)
+Out_path=fullfile(MainDir,'Examples','Running_DeGrooteetal2016','Results');
+
+Misc.DofNames_Input={'ankle_angle_r','knee_angle_r','hip_flexion_r','hip_adduction_r','hip_rotation_r'};
+Misc.MuscleNames_Input={}; % Selects all muscles for input DOFs when empty
+
+% Optional Input Arguments
+Misc.f_cutoff_ID = 10;    % cutoff frequency filtering ID
+Misc.f_order_ID = 5;      % order frequency filtering ID
+Misc.f_cutoff_lMT = 10;   % cutoff frequency filtering lMT
+Misc.f_order_lMT = 5;     % order frequency filtering lMT
+Misc.f_cutoff_dM= 10;     % cutoff frequency filtering MA
+Misc.f_order_dM = 5;      % order frequency filtering MA
+Misc.f_cutoff_IK= 10;     % cutoff frequency filtering IK
+Misc.f_order_IK = 5;      % order frequency filtering IK
+
+%% Solve the problem
+switch framework
+    case 'GPOPS'
+        switch formulation_actdyn
+            case 'DeGroote2016'     
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009' 
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+        end
+    case 'CasADi'
+        switch formulation_actdyn
+            case 'DeGroote2016'      
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009'
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
                 end
         end
 end
@@ -413,63 +509,149 @@ end
 
 \begin{lstlisting} [frame=none,basicstyle=\tiny]
 clear all;close all;clc
-%% Choose formulation
-% formulation = 'lMtildeState';
-formulation = 'FtildeState';
+
+%% Choose optimization framework
+% framework = 'GPOPS';
+framework = 'CasADi';
+
+%% Choose contraction dynamics formulation
+% formulation_contdyn = 'lMtildeState';
+formulation_contdyn = 'FtildeState';
+
 %% Choose activation dynamics formulation
-% actdyn = 'DeGroote2016';
-actdyn = 'DeGroote2009';
+% formulation_actdyn = 'DeGroote2016';
+formulation_actdyn = 'DeGroote2009';
+
 %% Example
-% add main folder and subfolder to matlab path (installation)
-filepath=which('Example_Gait10dof18m.m'); [DirExample,~,~]=fileparts(filepath); [DirExample2,~,~]=fileparts(DirExample); [MainDir,~]=fileparts(DirExample2);
+% Add main folder and subfolder to matlab path (installation)
+filepath=which('Example_Gait10dof18m.m'); 
+[DirExample,~,~]=fileparts(filepath); 
+[DirExample2,~,~]=fileparts(DirExample); 
+[MainDir,~]=fileparts(DirExample2);
 addpath(genpath(MainDir));
 
 % Needed Input Arguments
 Datapath='C:\OpenSim 3.3\Models\Gait10dof18musc\OutputReference';
 IK_path=fullfile(Datapath,'IK','subject01_walk_IK.mot');
-ID_path=[]; % compute ID from the external loads
+ID_path=[]; % Compute ID from the external loads
 model_path=fullfile(Datapath,'subject01.osim');
-time=[0.7 1.4];     % Part of the right stance phase
-OutPath=fullfile(MainDir,'Examples','OpenSimInstallation_Gait10dof18m','Results');
+time=[0.7 1.4]; % Part of the right stance phase
+Out_path=fullfile(MainDir,'Examples','OpenSimInstallation_Gait10dof18m','Results');
 
 Misc.DofNames_Input={'ankle_angle_r','knee_angle_r','hip_flexion_r'};
 Misc.Loads_path=fullfile(Datapath,'ExperimentalData','subject01_walk_grf.xml');
 Misc.ID_ResultsPath=fullfile(Datapath,'ID','inversedynamics.sto');
 
+% Optional Input Arguments
+% Here is an example of how to adjust the Achilles tendon stiffness.
+% We first add the input argument MuscleNames_Input with ALL muscles 
+% that actuate the degrees of freedom listed in DofNames_Input.
+Misc.MuscleNames_Input={'hamstrings_r','bifemsh_r','glut_max_r',...
+    'iliopsoas_r','rect_fem_r','vasti_r','gastroc_r','soleus_r',...
+    'tib_ant_r'}; 
+% We then change the compliance of the Achilles tendon by changing the 
+% parameter Atendon of the gastrocnemius and the soleus. The default 
+% value is 35 and a lower value will result in a more compliant tendon.
+Misc.Atendon=[35,35,35,35,35,35,15,15,35];
+
 %% Solve the problem
-switch actdyn
-    case 'DeGroote2016' % Activation dynamics from De Groote et al. (2016)        
-        switch formulation
-            case 'lMtildeState'
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
+switch framework
+    case 'GPOPS'
+        switch formulation_actdyn
+            case 'DeGroote2016'     
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009' 
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
         end
-        
-    case 'DeGroote2009' % Activation dynamics from De Groote et al. (2009)   
-        switch formulation
-            case 'lMtildeState'
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_lMtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_FtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
+    case 'CasADi'
+        switch formulation_actdyn
+            case 'DeGroote2016'      
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009'
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
         end
 end
+
 \end{lstlisting}
 
 
 \subsection{OpenSim installation example Gait23dof54m}
 
 \begin{lstlisting}[frame=none,basicstyle=\tiny]
-clear all; close all; clc
-%% Choose formulation
-% formulation = 'lMtildeState';
-formulation = 'FtildeState';
+clear all;close all;clc
+
+%% Choose optimization framework
+% framework = 'GPOPS';
+framework = 'CasADi';
+
+%% Choose contraction dynamics formulation
+% formulation_contdyn = 'lMtildeState';
+formulation_contdyn = 'FtildeState';
+
 %% Choose activation dynamics formulation
-% actdyn = 'DeGroote2016';
-actdyn = 'DeGroote2009';
+% formulation_actdyn = 'DeGroote2016';
+formulation_actdyn = 'DeGroote2009';
+
 %% Example
 % add main folder and subfolder to matlab path (installation)
-filepath=which('Example_Gait23dof54m.m'); [DirExample,~,~]=fileparts(filepath); [DirExample2,~,~]=fileparts(DirExample); [MainDir,~]=fileparts(DirExample2);
+filepath=which('Example_Gait23dof54m.m'); 
+[DirExample,~,~]=fileparts(filepath); 
+[DirExample2,~,~]=fileparts(DirExample); 
+[MainDir,~]=fileparts(DirExample2);
 addpath(genpath(MainDir));
 
 % Needed Input Arguments
@@ -477,30 +659,85 @@ Datapath='C:\OpenSim 3.3\Models\Gait2354_Simbody\OutputReference';
 IK_path=fullfile(Datapath,'subject01_walk1_ik.mot');
 ID_path=fullfile(Datapath,'ResultsInverseDynamics','inverse_dynamics.sto');
 model_path=fullfile(Datapath,'subject01_scaledOnly.osim');
-time=[0.7 1.4];     % Part of the right stance phase
-OutPath=fullfile(MainDir,'Examples','OpenSimInstallation_Gait23dof54m','Results');
+time=[0.7 1.4]; % Part of the right stance phase
+Out_path=fullfile(MainDir,'Examples','OpenSimInstallation_Gait23dof54m','Results');
 
-Misc.MuscleNames_Input={};      % Selects all muscles for the Input DOFS when this is left empty.
 Misc.DofNames_Input={'ankle_angle_r','knee_angle_r','hip_flexion_r'};
+Misc.MuscleNames_Input={}; % Selects all muscles for input DOFs when empty
 
 %% Solve the problem
-switch actdyn
-    case 'DeGroote2016' % Activation dynamics from De Groote et al. (2016)            
-        switch formulation
-            case 'lMtildeState'
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
+switch framework
+    case 'GPOPS'
+        switch formulation_actdyn
+            case 'DeGroote2016'     
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009' 
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
         end
-        
-    case 'DeGroote2009' % Activation dynamics from De Groote et al. (2009)   
-        switch formulation
-            case 'lMtildeState'
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_lMtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
-            case 'FtildeState'   
-                [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,OptInfo_actdyn,DatStore_actdyn]=SolveMuscleRedundancy_FtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc);
+    case 'CasADi'
+        switch formulation_actdyn
+            case 'DeGroote2016'      
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_lMtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time,MExcitation,MActivation,RActivation,TForcetilde,...
+                            TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+                            SolveMuscleRedundancy_FtildeState_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
+
+            case 'DeGroote2009'
+                switch formulation_contdyn
+                    case 'lMtildeState'
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                    case 'FtildeState'   
+                        [Time_actdyn,MExcitation_actdyn,MActivation_actdyn,...
+                            RActivation_actdyn,TForcetilde_actdyn,TForce_actdyn,...
+                            lMtilde_actdyn,lM_actdyn,MuscleNames_actdyn,...
+                            OptInfo_actdyn,DatStore_actdyn]=...
+                            SolveMuscleRedundancy_FtildeState_actdyn_CasADi(...
+                            model_path,IK_path,ID_path,time,Out_path,Misc);
+                end
         end
 end
+
+
 \end{lstlisting}
 
 \end{document}
