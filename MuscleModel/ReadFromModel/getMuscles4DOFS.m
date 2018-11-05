@@ -22,7 +22,7 @@ for i=1:nm
     end    
 end
 
-% Default tendon stifness for these muscles
+% Default tendon stiffness for these muscles
 if ~isfield(Misc,'Atendon') || isempty(Misc.Atendon)
 	Misc.Atendon=ones(1,ct-1).*35;
 else
@@ -32,8 +32,6 @@ else
         Misc.Atendon=Misc.Atendon';
     end
 end
-
-Misc.shift = getShift(Misc.Atendon);
 
 % print to screen
 disp('MusclesNames Selected automatically:');

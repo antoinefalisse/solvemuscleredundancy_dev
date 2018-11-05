@@ -6,12 +6,6 @@
 % collocation optimal control problem formulations for solving the muscle
 % redundancy problem. Annals of Biomedical Engineering (2016).
 %
-% Change with regards to version 0.1: Activation dynamics as described in
-% De Goote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J,
-% De Schutter J. A physiology based inverse dynamic analysis of human gait:
-% potential and perspectives. Computer Methods in Biomechanics and
-% Biomedical Engineering (2009).
-%
 % Authors:  F. De Groote, M. Afschrift, A. Falisse
 % Emails:   friedl.degroote@kuleuven.be
 %           maarten.afschrift@kuleuven.be
@@ -50,7 +44,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -103,7 +97,6 @@ if time(1)==time(2)
    warning('Time window should be at least 0.01s'); 
 end
 
-
 % ------------------------------------------------------------------------%
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
@@ -146,6 +139,8 @@ Misc.MuscleAnalysisPath=MuscleAnalysisPath;
 if ~isfield(Misc,'MuscleNames_Input') || isempty(Misc.MuscleNames_Input)    
     Misc=getMuscles4DOFS(Misc);
 end
+% Shift tendon force-length curve as a function of the tendon stiffness
+Misc.shift = getShift(Misc.Atendon);
 [DatStore] = getMuscleInfo(IK_path,ID_path,Misc);
 
 % ----------------------------------------------------------------------- %
@@ -198,20 +193,20 @@ auxdata.Atendon=Misc.Atendon;
 auxdata.shift=Misc.shift;
 
 % Problem bounds 
-a_min = 0; a_max = 1;               % bounds on muscle activation
-vA_min = -1/100; vA_max = 1/100;    % bounds on derivative of muscle activation (scaled)
-F_min = 0; F_max = 5;               % bounds on normalized tendon force
-dF_min = -100; dF_max = 100;        % bounds on derivative of normalized tendon force
+e_min = 0; e_max = 1;           % bounds on muscle excitation
+a_min = 0; a_max = 1;           % bounds on muscle activation
+F_min = 0; F_max = 5;           % bounds on normalized tendon force
+dF_min = -50; dF_max = 50;      % bounds on derivative of normalized tendon force
 
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 bounds.phase.initialtime.lower = t0; bounds.phase.initialtime.upper = t0;
 bounds.phase.finaltime.lower = tf; bounds.phase.finaltime.upper = tf;
 % Controls bounds
-vAmin = vA_min./auxdata.tauDeact; vAmax = vA_max./auxdata.tauAct;
+umin = e_min*ones(1,auxdata.NMuscles); umax = e_max*ones(1,auxdata.NMuscles);
 dFMin = dF_min*ones(1,auxdata.NMuscles); dFMax = dF_max*ones(1,auxdata.NMuscles);
 aTmin = -1*ones(1,auxdata.Ndof); aTmax = 1*ones(1,auxdata.Ndof);
-bounds.phase.control.lower = [vAmin aTmin dFMin]; bounds.phase.control.upper = [vAmax aTmax dFMax];
+bounds.phase.control.lower = [umin aTmin dFMin]; bounds.phase.control.upper = [umax aTmax dFMax];
 % States bounds
 actMin = a_min*ones(1,auxdata.NMuscles); actMax = a_max*ones(1,auxdata.NMuscles);
 F0min = F_min*ones(1,auxdata.NMuscles); F0max = F_max*ones(1,auxdata.NMuscles);
@@ -227,11 +222,7 @@ bounds.phase.integral.upper = 10000*(tf-t0);
 % Path constraints
 HillEquil = zeros(1, auxdata.NMuscles);
 ID_bounds = zeros(1, auxdata.Ndof);
-act1_lower = zeros(1, auxdata.NMuscles);
-act1_upper = inf * ones(1, auxdata.NMuscles);
-act2_lower = -inf * ones(1, auxdata.NMuscles);
-act2_upper =  ones(1, auxdata.NMuscles)./auxdata.tauAct;
-bounds.phase.path.lower = [ID_bounds,HillEquil,act1_lower,act2_lower]; bounds.phase.path.upper = [ID_bounds,HillEquil,act1_upper,act2_upper];
+bounds.phase.path.lower = [ID_bounds,HillEquil]; bounds.phase.path.upper = [ID_bounds,HillEquil];
 
 % Eventgroup
 % Impose mild periodicity
@@ -242,12 +233,8 @@ bounds.eventgroup.lower = [pera_lower perFtilde_lower]; bounds.eventgroup.upper 
 % Initial guess
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
-% Based on SO
-% guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
-% guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
-% Random
-guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) 0.2*ones(N,auxdata.NMuscles)];
+guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
+guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
 
 guess.phase.integral = 0;
 
@@ -264,7 +251,7 @@ for m = 1:auxdata.NMuscles
 end
 
 % GPOPS setup        
-setup.name = 'DynamicOptimization_FtildeState_vA';
+setup.name = 'DynamicOptimization_FtildeState';
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
@@ -272,7 +259,7 @@ setup.nlp.solver = 'ipopt';
 setup.nlp.ipoptoptions.linear_solver = 'ma57';
 setup.derivatives.derivativelevel = 'second';
 setup.nlp.ipoptoptions.tolerance = 1e-6;
-setup.nlp.ipoptoptions.maxiterations = 10000;
+setup.nlp.ipoptoptions.maxiterations = 2000;
 setup.derivatives.supplier = 'adigator';
 setup.scales.method = 'none';
 setup.mesh.method = 'hp-PattersonRao';
@@ -285,7 +272,7 @@ setup.displaylevel = 2;
 NMeshIntervals = round((tf-t0)*Misc.Mesh_Frequency);
 setup.mesh.phase.colpoints = 3*ones(1,NMeshIntervals);
 setup.mesh.phase.fraction = (1/(NMeshIntervals))*ones(1,NMeshIntervals);
-setup.functions.continuous = @musdynContinous_FtildeState_vA;
+setup.functions.continuous = @musdynContinous_FtildeState;
 setup.functions.endpoint = @musdynEndpoint_FtildeState;
     
 % ADiGator setup
@@ -302,10 +289,10 @@ end
 setup.auxdata.splinestruct = splinestructad;
 adigatorGenFiles4gpops2(setup)
 
-setup.functions.continuous = @Wrap4musdynContinous_FtildeState_vA;
-setup.adigatorgrd.continuous = @musdynContinous_FtildeState_vAGrdWrap;
+setup.functions.continuous = @Wrap4musdynContinous_FtildeState;
+setup.adigatorgrd.continuous = @musdynContinous_FtildeStateGrdWrap;
 setup.adigatorgrd.endpoint   = @musdynEndpoint_FtildeStateADiGatorGrd;
-setup.adigatorhes.continuous = @musdynContinous_FtildeState_vAHesWrap;
+setup.adigatorhes.continuous = @musdynContinous_FtildeStateHesWrap;
 setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 
 %% ---------------------------------------------------------------------- %
@@ -313,26 +300,24 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 % PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
-
 output = gpops2(setup);
 
 % Delete output files from ADiGator
-delete musdynEndpoint_FtildeState_vAADiGatorGrd.mat
-delete musdynEndpoint_FtildeState_vAADiGatorGrd.m
-delete musdynEndpoint_FtildeState_vAADiGatorHes.mat
-delete musdynEndpoint_FtildeState_vAADiGatorHes.m
-delete musdynContinous_FtildeState_vAADiGatorHes.mat
-delete musdynContinous_FtildeState_vAADiGatorHes.m
-delete musdynContinous_FtildeState_vAADiGatorGrd.mat
-delete musdynContinous_FtildeState_vAADiGatorGrd.m
+delete musdynEndpoint_FtildeStateADiGatorGrd.mat
+delete musdynEndpoint_FtildeStateADiGatorGrd.m
+delete musdynEndpoint_FtildeStateADiGatorHes.mat
+delete musdynEndpoint_FtildeStateADiGatorHes.m
+delete musdynContinous_FtildeStateADiGatorHes.mat
+delete musdynContinous_FtildeStateADiGatorHes.m
+delete musdynContinous_FtildeStateADiGatorGrd.mat
+delete musdynContinous_FtildeStateADiGatorGrd.m
 
 res=output.result.solution.phase(1);
 Time=res.time;
 MActivation=res.state(:,1:auxdata.NMuscles);
 TForcetilde=res.state(:,auxdata.NMuscles+1:auxdata.NMuscles*2);
 TForce=TForcetilde.*(ones(size(Time))*DatStore.Fiso);
-vA=100*res.control(:,1:auxdata.NMuscles);
-MExcitation=computeExcitationRaasch(MActivation,vA, auxdata.tauDeact, auxdata.tauAct);
+MExcitation=res.control(:,1:auxdata.NMuscles);
 RActivation=res.control(:,auxdata.NMuscles+1:auxdata.NMuscles+auxdata.Ndof)*150;
 MuscleNames=DatStore.MuscleNames;
 OptInfo=output;
@@ -341,5 +326,6 @@ OptInfo=output;
 % Interpolation lMT
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
 [lM,lMtilde] = FiberLength_Ftilde(TForcetilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
+
 end
 
