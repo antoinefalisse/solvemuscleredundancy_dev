@@ -11,15 +11,17 @@
 \BOOKMARK [3][-]{subsubsection.4.2.2}{With implicit activation dynamics formulation \(De Groote et al. \(2009\)\)}{subsection.4.2}% 11
 \BOOKMARK [2][-]{subsection.4.3}{Input Arguments}{section.4}% 12
 \BOOKMARK [2][-]{subsection.4.4}{Output arguments}{section.4}% 13
-\BOOKMARK [1][-]{section.5}{GPOPS-II}{}% 14
-\BOOKMARK [2][-]{subsection.5.1}{Setup}{section.5}% 15
-\BOOKMARK [2][-]{subsection.5.2}{Output}{section.5}% 16
-\BOOKMARK [1][-]{section.6}{CasADi}{}% 17
-\BOOKMARK [2][-]{subsection.6.1}{Setup}{section.6}% 18
-\BOOKMARK [2][-]{subsection.6.2}{Output}{section.6}% 19
-\BOOKMARK [1][-]{section.7}{Muscle model}{}% 20
-\BOOKMARK [1][-]{section.8}{Examples}{}% 21
-\BOOKMARK [2][-]{subsection.8.1}{Walking example De Groote et al. 2016}{section.8}% 22
-\BOOKMARK [2][-]{subsection.8.2}{Running example De Groote et al. 2016}{section.8}% 23
-\BOOKMARK [2][-]{subsection.8.3}{OpenSim installation example Gait10dof18m}{section.8}% 24
-\BOOKMARK [2][-]{subsection.8.4}{OpenSim installation example Gait23dof54m}{section.8}% 25
+\BOOKMARK [3][-]{subsubsection.4.4.1}{Using GPOPS}{subsection.4.4}% 14
+\BOOKMARK [3][-]{subsubsection.4.4.2}{Using CasADi}{subsection.4.4}% 15
+\BOOKMARK [1][-]{section.5}{GPOPS-II}{}% 16
+\BOOKMARK [2][-]{subsection.5.1}{Setup}{section.5}% 17
+\BOOKMARK [2][-]{subsection.5.2}{Output}{section.5}% 18
+\BOOKMARK [1][-]{section.6}{CasADi}{}% 19
+\BOOKMARK [2][-]{subsection.6.1}{Setup}{section.6}% 20
+\BOOKMARK [2][-]{subsection.6.2}{Output}{section.6}% 21
+\BOOKMARK [1][-]{section.7}{Muscle model}{}% 22
+\BOOKMARK [1][-]{section.8}{Examples}{}% 23
+\BOOKMARK [2][-]{subsection.8.1}{Walking example De Groote et al. 2016}{section.8}% 24
+\BOOKMARK [2][-]{subsection.8.2}{Running example De Groote et al. 2016}{section.8}% 25
+\BOOKMARK [2][-]{subsection.8.3}{OpenSim installation example Gait10dof18m}{section.8}% 26
+\BOOKMARK [2][-]{subsection.8.4}{OpenSim installation example Gait23dof54m}{section.8}% 27
