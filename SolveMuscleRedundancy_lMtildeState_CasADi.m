@@ -200,7 +200,7 @@ auxdata.shift=Misc.shift;
 e_min = 0; e_max = 1;                   % bounds on muscle excitation
 a_min = 0; a_max = 1;                   % bounds on muscle activation
 vMtilde_min = -1; vMtilde_max = 1;      % bounds on normalized muscle fiber velocity
-lMtilde_min = 0.4; lMtilde_max = 1.5;   % bounds on normalized muscle fiber length
+lMtilde_min = 0.2; lMtilde_max = 1.8;   % bounds on normalized muscle fiber length
 
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);

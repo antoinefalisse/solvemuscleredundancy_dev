@@ -1,4 +1,4 @@
-iar% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
+% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -296,10 +296,7 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_lMtildeStateADiGatorHes;
 % PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
-
-diary('DynamicOptimization_lMtildeState.txt'); 
 output = gpops2(setup);
-diary off;
 
 % Delete output files from ADiGator
 delete musdynEndpoint_lMtildeStateADiGatorGrd.mat

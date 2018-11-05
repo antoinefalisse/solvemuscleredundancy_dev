@@ -441,13 +441,13 @@ ak              = MX.sym(['a_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, ak};
 lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(k+2,1:auxdata.NMuscles)'];
 % Muscle-tendon forces
 lMtildek        = MX.sym(['lMtilde_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, lMtildek};
 lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
+w0              = [w0;  guess.phase.state(k+2,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
 
 % Add equality constraints (next interval starts with end values of 
 % states from previous interval).

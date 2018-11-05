@@ -313,9 +313,8 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 % PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
-diary('DynamicOptimization_FtildeState_vA.txt'); 
 output = gpops2(setup);
-diary off;
+
 % Delete output files from ADiGator
 delete musdynEndpoint_FtildeState_vAADiGatorGrd.mat
 delete musdynEndpoint_FtildeState_vAADiGatorGrd.m

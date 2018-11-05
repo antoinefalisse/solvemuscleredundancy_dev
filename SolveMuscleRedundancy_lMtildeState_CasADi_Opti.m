@@ -316,14 +316,14 @@ amesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(a_min < a < a_max);
 opti.subject_to(a_min < amesh < a_max);
 opti.set_initial(a,SoActInterp');
-opti.set_initial(amesh,(reshape(permute(repmat(SoActInterp(1:N,:),1,1,3),[3,1,2]),210,9)'));
+opti.set_initial(amesh,(reshape(permute(repmat(SoActInterp(1:N,:),1,1,d),[3,1,2]),d*N,auxdata.NMuscles)'));
 % Muscle fiber lengths
 lMtilde = opti.variable(auxdata.NMuscles,N+1);
 lMtildemesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(lMtilde_min < lMtilde < lMtilde_max);
 opti.subject_to(lMtilde_min < lMtildemesh < lMtilde_max);
 opti.set_initial(lMtilde, ones(N+1,auxdata.NMuscles)');
-opti.set_initial(lMtildemesh, ones(3*N,auxdata.NMuscles)');
+opti.set_initial(lMtildemesh, ones(d*N,auxdata.NMuscles)');
 
 % Controls
 % Muscle excitations
@@ -372,7 +372,6 @@ for k=1:N
     
     % Get muscle-tendon forces and derive Hill-equilibrium
     [Hilldiffk,FTk] = f_forceEquilibrium_lMtildeState(ak,lMtildek,vMtildek,LMTinterp(k,:)'); 
-    opti.subject_to(FTk > 5);
     % Add path constraints
     % Moment constraints
     for dof = 1:auxdata.Ndof
