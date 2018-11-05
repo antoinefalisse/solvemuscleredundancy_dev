@@ -318,10 +318,10 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 output = gpops2(setup);
 
 % Delete output files from ADiGator
-delete musdynEndpoint_FtildeState_vAADiGatorGrd.mat
-delete musdynEndpoint_FtildeState_vAADiGatorGrd.m
-delete musdynEndpoint_FtildeState_vAADiGatorHes.mat
-delete musdynEndpoint_FtildeState_vAADiGatorHes.m
+delete musdynEndpoint_FtildeStateADiGatorGrd.mat
+delete musdynEndpoint_FtildeStateADiGatorGrd.m
+delete musdynEndpoint_FtildeStateADiGatorHes.mat
+delete musdynEndpoint_FtildeStateADiGatorHes.m
 delete musdynContinous_FtildeState_vAADiGatorHes.mat
 delete musdynContinous_FtildeState_vAADiGatorHes.m
 delete musdynContinous_FtildeState_vAADiGatorGrd.mat
