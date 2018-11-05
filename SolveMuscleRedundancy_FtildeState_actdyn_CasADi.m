@@ -351,7 +351,7 @@ optionssol.ipopt.max_iter = output.setup.nlp.ipoptoptions.maxiterations;
 opti.solver(output.setup.nlp.solver,optionssol);
 
 % Solve
-diary('DynamicOptimization_FtildeState_actdyn_CasADi.txt');
+diary('DynamicOptimization_FtildeState_actdyn_CasADi_IPOPTinfo.txt');
 sol = opti.solve();
 diary off
 

@@ -237,7 +237,7 @@ guess.phase.time = DatStore.time;
 % guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
 % guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
 % Naive initial guess
-guess.phase.control = [0.2*(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
 guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) 0.2*ones(N,auxdata.NMuscles)];
 
 guess.phase.integral = 0;
@@ -255,7 +255,7 @@ for m = 1:auxdata.NMuscles
 end
 
 % GPOPS setup        
-setup.name = 'DynamicOptimization_FtildeState_GPOPS';
+setup.name = 'DynamicOptimization_FtildeState_GPOPS_';
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
