@@ -103,6 +103,7 @@ function c = constraints_SO (x, auxdata)
 
 % ------------------------------------------------------------------
 function g = gradient_SO (x, auxdata)
+  g = x;
 
 % ------------------------------------------------------------------
 function J = jacobianstructure_SO (auxdata)  
