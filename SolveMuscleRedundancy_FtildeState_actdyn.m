@@ -315,7 +315,6 @@ setup.adigatorhes.endpoint   = @musdynEndpoint_FtildeStateADiGatorHes;
 % PART III: SOLVE OPTIMAL CONTROL PROBLEM ------------------------------- %
 % ----------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
-
 output = gpops2(setup);
 
 % Delete output files from ADiGator

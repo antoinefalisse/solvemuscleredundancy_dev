@@ -283,7 +283,7 @@ N = round((tf-t0)*Misc.Mesh_Frequency);
 h = (tf-t0)/N;
 
 % Interpolation
-step = (tf-t0)/(N-1);
+step = (tf-t0)/(N);
 time_opt = t0:step:tf;
 LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
 for m = 1:auxdata.NMuscles
@@ -405,7 +405,7 @@ optionssol.ipopt.tol = 1e-6;
 optionssol.ipopt.max_iter = 10000;
 opti.solver('ipopt',optionssol)
 % Solve
-diary('DynamicOptimization_FtildeState_vA_CasADi_Opti.txt'); 
+diary('DynamicOptimization_lMtildeState_vA_CasADi_Opti.txt'); 
 sol = opti.solve();
 diary off
 
@@ -500,4 +500,5 @@ lMTinterp.meshPoints = interp1(DatStore.time,DatStore.LMT,Time.meshPoints);
 [TForcetilde.meshPoints,TForce.meshPoints] = TendonForce_lMtilde(lMtildeopt.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
 [TForcetilde.collocationPoints,TForce.collocationPoints] = TendonForce_lMtilde(lMtildeopt.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);
+lMtilde = lMtildeopt;
 end

@@ -273,7 +273,7 @@ N = round((tf-t0)*Misc.Mesh_Frequency);
 h = (tf-t0)/N;
 
 % Interpolation
-step = (tf-t0)/(N-1);
+step = (tf-t0)/(N);
 time_opt = t0:step:tf;
 LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
 VMTinterp = zeros(length(time_opt),auxdata.NMuscles);
@@ -394,7 +394,7 @@ for k=0:N-1
         FTtildek_end = FTtildek_end + D(j+1)*FTtildekj{j};        
         % Add contribution to the quadrature function
         J = J + ...
-            B(j+1)*f_ssNMuscles(akj{j})*h + ...   
+            B(j+1)*f_ssNMuscles(ek)*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk)*h + ...
             auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek)*h;
     end
@@ -423,13 +423,13 @@ ak              = MX.sym(['a_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, ak};
 lbw             = [lbw; bounds.phase.state.lower(1:auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(1:auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,1:auxdata.NMuscles)'];
+w0              = [w0;  guess.phase.state(k+2,1:auxdata.NMuscles)'];
 % Muscle-tendon forces
 FTtildek        = MX.sym(['FTtilde_' num2str(k+1)], auxdata.NMuscles);
 w               = {w{:}, FTtildek};
 lbw             = [lbw; bounds.phase.state.lower(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
 ubw             = [ubw; bounds.phase.state.upper(auxdata.NMuscles+1:2*auxdata.NMuscles)'];
-w0              = [w0;  guess.phase.state(k+1,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
+w0              = [w0;  guess.phase.state(k+2,auxdata.NMuscles+1:2*auxdata.NMuscles)'];    
 
 % Add equality constraints (next interval starts with end values of 
 % states from previous interval).

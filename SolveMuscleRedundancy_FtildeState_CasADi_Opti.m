@@ -269,7 +269,7 @@ N = round((tf-t0)*Misc.Mesh_Frequency);
 h = (tf-t0)/N;
 
 % Interpolation
-step = (tf-t0)/(N-1);
+step = (tf-t0)/(N);
 time_opt = t0:step:tf;
 LMTinterp = zeros(length(time_opt),auxdata.NMuscles);
 VMTinterp = zeros(length(time_opt),auxdata.NMuscles);
@@ -354,7 +354,7 @@ for k=1:N
 
         % Add contribution to the quadrature function
         J = J + ...
-            B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...   
+            B(j+1)*f_ssNMuscles(ek)*h + ...   
             auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ...
             auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek)*h;
     end

@@ -78,59 +78,57 @@ Misc.Atendon=[35,35,35,35,35,35,15,15,35];
 %         end
 % end
 
-%% Comparison GPOPS and CasADi
 [Time_actdyn.cas,MExcitation_actdyn.cas,MActivation_actdyn.cas,RActivation_actdyn.cas,TForcetilde_actdyn.cas,TForce_actdyn.cas,lMtilde_actdyn.cas,lM_actdyn.cas,MuscleNames_actdyn.cas,OptInfo_actdyn.cas,DatStore_actdyn.cas]=SolveMuscleRedundancy_FtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
 
 % [Time_actdyn.gpo,MExcitation_actdyn.gpo,MActivation_actdyn.gpo,RActivation_actdyn.gpo,TForcetilde_actdyn.gpo,TForce_actdyn.gpo,lMtilde_actdyn.gpo,lM_actdyn.gpo,MuscleNames_actdyn.gpo,OptInfo_actdyn.gpo,DatStore_actdyn.gpo]=SolveMuscleRedundancy_FtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
 % [Time_actdyn.cas,MExcitation_actdyn.cas,MActivation_actdyn.cas,RActivation_actdyn.cas,TForcetilde_actdyn.cas,TForce_actdyn.cas,lMtilde_actdyn.cas,lM_actdyn.cas,MuscleNames_actdyn.cas,OptInfo_actdyn.cas,DatStore_actdyn.cas]=SolveMuscleRedundancy_lMtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc);
 
-% [Time_actdyn.gpo,MExcitation_actdyn.gpo,MActivation_actdyn.gpo,RActivation_actdyn.gpo,TForcetilde_actdyn.gpo,TForce_actdyn.gpo,lMtilde_actdyn.gpo,lM_actdyn.gpo,MuscleNames_actdyn.gpo,OptInfo_actdyn.gpo,DatStore_actdyn.gpo]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc);
 
 % Muscle activations
 figure()
 plot(Time_actdyn.gpo,MActivation_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.collocationPoints,MActivation_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.collocationPoints,MActivation_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
 title('Muscle activations')
 
 % Muscle excitations
 figure()
 plot(Time_actdyn.gpo,MExcitation_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.meshPoints(1:end-1),MExcitation_actdyn.cas.meshPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.meshPoints(1:end-1),MExcitation_actdyn.cas.meshPoints,'LineStyle',':','LineWidth',2);
 title('Muscle excitations')
 
 % Muscle-tendon forces (normalized)
 figure()
 plot(Time_actdyn.gpo,TForcetilde_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.collocationPoints,TForcetilde_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.collocationPoints,TForcetilde_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
 title('Muscle forces (normalized)')
 
 % Muscle-tendon forces
 figure()
 plot(Time_actdyn.gpo,TForce_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.collocationPoints,TForce_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.collocationPoints,TForce_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
 title('Muscle forces')
 
 % Muscle fiber lengths (normalized)
 figure()
 plot(Time_actdyn.gpo,lMtilde_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.collocationPoints,lMtilde_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.collocationPoints,lMtilde_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
 title('Muscle fiber lengths (normalized)')
 
 % Muscle fiber lengths
 figure()
 plot(Time_actdyn.gpo,lM_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.collocationPoints,lM_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.collocationPoints,lM_actdyn.cas.collocationPoints,'LineStyle',':','LineWidth',2);
 title('Muscle fiber lengths')
 
 % Reserve actuators
 figure()
 plot(Time_actdyn.gpo,RActivation_actdyn.gpo,'LineWidth',2);
 hold on
-% plot(Time_actdyn.cas.meshPoints(1:end-1),RActivation_actdyn.cas.meshPoints./150,'LineStyle',':','LineWidth',2);
+plot(Time_actdyn.cas.meshPoints(1:end-1),RActivation_actdyn.cas.meshPoints,'LineStyle',':','LineWidth',2);
 title('Reserve actuators')
