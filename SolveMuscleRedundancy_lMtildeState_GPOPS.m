@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -41,7 +41,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -228,11 +228,11 @@ bounds.eventgroup.lower = [pera_lower perlMtilde_lower]; bounds.eventgroup.upper
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
 % Static optimization results as initial guess
-guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
-% Random initial guess
-% guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-% guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+% guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
+% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
+% Naive initial guess
+guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
 % Spline structures
@@ -253,7 +253,7 @@ setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
 setup.nlp.solver = 'ipopt';
-setup.nlp.ipoptoptions.linear_solver = 'ma57';
+setup.nlp.ipoptoptions.linear_solver = 'mumps';
 setup.derivatives.derivativelevel = 'second';
 setup.nlp.ipoptoptions.tolerance = 1e-5;
 setup.nlp.ipoptoptions.maxiterations = 2000;

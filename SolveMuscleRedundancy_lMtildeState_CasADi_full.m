@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -46,7 +46,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_CasADi_full(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -241,7 +241,7 @@ guess.phase.time = DatStore.time;
 % guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
 % Random initial guess
 guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.2*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N+1,auxdata.NMuscles) ones(N+1,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
 % Spline structures
