@@ -303,7 +303,7 @@ end
 % guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
 % Random
 guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N+1,auxdata.NMuscles) ones(N+1,auxdata.NMuscles)];
 
 % Empty NLP
 w   = {};

@@ -241,7 +241,7 @@ guess.phase.time = DatStore.time;
 % guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
 % Random initial guess
 guess.phase.control = [0.2*ones(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.2*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+guess.phase.state =  [0.2*ones(N+1,auxdata.NMuscles) ones(N+1,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
 % Spline structures

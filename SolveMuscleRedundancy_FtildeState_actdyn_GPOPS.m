@@ -247,7 +247,7 @@ guess.phase.time = DatStore.time;
 % Based on SO
 % guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
 % guess.phase.state =  [DatStore.SoAct DatStore.SoAct];
-% Random
+% Naive initial guess
 guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
 guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) 0.2*ones(N,auxdata.NMuscles)];
 
@@ -271,7 +271,7 @@ setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
 setup.nlp.solver = 'ipopt';
-setup.nlp.ipoptoptions.linear_solver = 'ma57';
+setup.nlp.ipoptoptions.linear_solver = 'mumps';
 setup.derivatives.derivativelevel = 'second';
 setup.nlp.ipoptoptions.tolerance = 1e-6;
 setup.nlp.ipoptoptions.maxiterations = 10000;
