@@ -70,10 +70,10 @@
 \section{Overview}
 \label{Overview}
 
-The provided MATLAB code solves the muscle redundancy problem using direct collocation  as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} \url{http://link.springer.com/article/10.1007%2Fs10439-016-1591-9}. 
+The provided MATLAB code solves the muscle redundancy problem using direct collocation as described in \textit{De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of direct collocation optimal control problem formulations for solving the muscle redundancy problem. Annals of Biomedical Engineering (2016).} \url{http://link.springer.com/article/10.1007%2Fs10439-016-1591-9}. 
 \\
 
-From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We used CasADi's Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and  has an active forum (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
+From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We used CasADi's Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and has an active forum (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
 
 
 From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in \textit{De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009).} \url{http://www.tandfonline.com/doi/full/10.1080/10255840902788587}. Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
@@ -218,8 +218,8 @@ CasADi uses piecewise-constant controls in the mesh intervals. We therefore dist
 	\item RActivation.meshPoints: activation of the reserve actuators (matrix dimension: number of mesh points x number of degrees of freedom).
 	\item TForcetilde: normalized tendon force 
 	\begin{enumerate}
-	\item TForce.meshPoints: normalized tendon force at mesh points (matrix dimension: number of mesh points x number of muscles).
-	\item TForce.collocationPoints: normalized tendon force at collocation points (matrix dimension: number of collocation points x number of muscles). 
+	\item TForcetilde.meshPoints: normalized tendon force at mesh points (matrix dimension: number of mesh points x number of muscles).
+	\item TForcetilde.collocationPoints: normalized tendon force at collocation points (matrix dimension: number of collocation points x number of muscles). 
 	\end{enumerate}
 	\item TForce: tendon force 
 	\begin{enumerate}
@@ -228,13 +228,13 @@ CasADi uses piecewise-constant controls in the mesh intervals. We therefore dist
 	\end{enumerate}	
 	\item lMtilde: normalized muscle fiber length 
 	\begin{enumerate}
-	\item TForce.meshPoints: normalized muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
-	\item TForce.collocationPoints: normalized muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
+	\item lMtilde.meshPoints: normalized muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
+	\item lMtilde.collocationPoints: normalized muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
 	\end{enumerate}	
 	\item lM: muscle fiber length
 	\begin{enumerate}
-	\item TForce.meshPoints: muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
-	\item TForce.collocationPoints: muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
+	\item lM.meshPoints: muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
+	\item lM.collocationPoints: muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
 	\end{enumerate}	
 	\item MuscleNames: cell array that contains the names of the selected muscles (matrix dimension: number of muscles).
 	\item OptInfo: output structure with settings used in CasADi.

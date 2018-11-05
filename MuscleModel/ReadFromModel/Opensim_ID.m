@@ -1,6 +1,6 @@
 function [] = Opensim_ID(model_dir,event,input_GRF_settings,input_motion,output_path,output_name,output_settings)
 %Opensim_ID Calculates Inverse Dynamics
-%   model_dir                   path+name of the model
+%   model_dir               path+name of the model
 %   event                   rowvector with start and end time
 %   input_GRF_settings      path+name of the input GRF settings
 %   input_motion            path+name of the input motion (ik)
@@ -43,30 +43,8 @@ idTool.setOutputGenForceFileName(output_name);
 % Save the settings in a setup file
 idTool.print(output_settings);
 
-%% gets out of memory=> problem (memory leak ?)
 % run the idTool
 idTool.run();
-% 
 
-%% command line
-% 
-% xml=xml_read(output_settings);
-% xml.InverseDynamicsTool.model_file=model_dir;
-% event_range=xml.InverseDynamicsTool.time_range;
-% xml.InverseDynamicsTool.time_range=num2str(event_range);
-% xml_write(output_settings,xml,'OpenSimDocument');
-% 
-% % trhough command line
-% Command = [exe_path ' -S ' output_settings];
-% % try
-% %     importdata(fullfile(output_path,output_name));
-% % catch
-% %         system(Command);
-% %         importdata(fullfile(output_path,output_name));
-% % end
-% system(Command);
-% % 
-% % clear all
-% % close all
 end
 

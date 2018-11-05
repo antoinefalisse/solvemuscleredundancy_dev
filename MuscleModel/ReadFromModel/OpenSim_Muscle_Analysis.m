@@ -24,7 +24,6 @@ out_path_xml=fullfile(output_path,['muscle_analysis_' name '.xml']);
 tool.print(out_path_xml);
 tool.run;
 
-% dos(['analyze1 -S ', out_path_xml]);
 
 end
 
