@@ -248,7 +248,7 @@ for m = 1:auxdata.NMuscles
 end
 
 % GPOPS setup
-setup.name = 'DynamicOptimization_lMtildeState_GPOPS';
+setup.name = 'DynamicOptimization_lMtildeState_GPOPS_';
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;

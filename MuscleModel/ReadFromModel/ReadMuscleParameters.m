@@ -8,11 +8,11 @@ import org.opensim.modeling.*;
 model = Model(ModelPath);
 
 % read the muscle properties
-nom = length(names);
-params = zeros(5, nom);			% pre allocate
+nNames = length(names);
+params = zeros(5, nNames);
 muscles = model.getMuscles();
 
-for i = 1:nom
+for i = 1:nNames
    muscle = muscles.get(names{i});
    params(3,i) = muscle.getTendonSlackLength();		
    params(2,i) = muscle.getOptimalFiberLength(); 	
