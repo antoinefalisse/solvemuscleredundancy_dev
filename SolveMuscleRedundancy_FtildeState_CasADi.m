@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_FtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_FtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg as
 % described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of
@@ -279,7 +279,7 @@ opti.set_initial(dFTtilde,0.01);
 % Loop over mesh points to formulate NLP
 J = 0; % Initialize cost function
 for k=1:N
-    % Variables within observed mesh interval
+    % Variables within current mesh interval
     ak = a(:,k); FTtildek = FTtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
     dFTtildek = dFTtilde(:,k); aTk = aT(:,k); ek = e(:,k);

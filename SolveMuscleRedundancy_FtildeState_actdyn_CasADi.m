@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_FtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_FtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg as
 % described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of
@@ -51,7 +51,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi_Opti(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -204,11 +204,10 @@ a_min = 0; a_max = 1;               % bounds on muscle activation
 vA_min = -1/100; vA_max = 1/100;    % bounds on derivative of muscle activation (scaled)
 F_min = 0; F_max = 5;               % bounds on normalized tendon force
 dF_min = -100; dF_max = 100;        % bounds on derivative of normalized tendon force
-
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 
-%% CasADi setup
+% CasADi setup
 import casadi.*
 opti = casadi.Opti(); % Create opti instance
 
@@ -255,7 +254,6 @@ end
 
 % Variables - bounds and initial guess
 % States (at mesh and collocation points)
-% States
 % Muscle activations
 a = opti.variable(auxdata.NMuscles,N+1);      % Variable at mesh points
 amesh = opti.variable(auxdata.NMuscles,d*N);  % Variable at collocation points
@@ -286,7 +284,7 @@ opti.set_initial(dFTtilde,0.01);
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
 for k=1:N
-    % Variables within observed mesh interval
+    % Variables within current mesh interval
     ak = a(:,k); FTtildek = FTtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
     dFTtildek = dFTtilde(:,k); aTk = aT(:,k); vAk = vA(:,k);
@@ -358,18 +356,6 @@ sol = opti.solve();
 diary off
 
 %% Extract results
-% Number of design variables
-NStates = 2*auxdata.NMuscles;
-NControls = 2*auxdata.NMuscles+auxdata.Ndof;
-NParameters = 0;
-% Number of design variables (in the loop)
-Nwl = NControls+d*(NStates)+NStates;
-% Number of design variables (in total)
-Nw = NParameters+NStates+N*Nwl;
-% Number of design variables before the variable corresponding to the first collocation point
-Nwm = NParameters+NStates+NControls;
-
-% Variables at mesh points
 % Variables at mesh points
 % Muscle activations and muscle-tendon forces
 a_opt = sol.value(a)';
@@ -381,7 +367,7 @@ vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-dFTtilde_opt = sol.value(dFTtilde)';
+% dFTtilde_opt = sol.value(dFTtilde)';
 
 % Variables at collocation points
 % Muscle activations

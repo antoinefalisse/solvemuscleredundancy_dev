@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -203,11 +203,10 @@ e_min = 0; e_max = 1;                   % bounds on muscle excitation
 a_min = 0; a_max = 1;                   % bounds on muscle activation
 vMtilde_min = -1; vMtilde_max = 1;      % bounds on normalized muscle fiber velocity
 lMtilde_min = 0.2; lMtilde_max = 1.8;   % bounds on normalized muscle fiber length
-
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 
-%% CasADi setup
+% CasADi setup
 import casadi.*
 opti = casadi.Opti();
 
@@ -284,7 +283,7 @@ opti.set_initial(vMtilde,0.01);
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
 for k=1:N
-    % Variables within observed mesh interval    
+    % Variables within current mesh interval    
     ak = a(:,k); lMtildek = lMtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; lMtildek_colloc = [lMtildek lMtildemesh(:,(k-1)*d+1:k*d)];
     vMtildek = vMtilde(:,k); aTk = aT(:,k); ek = e(:,k);
@@ -360,7 +359,7 @@ e_opt = sol.value(e)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-vMtilde_opt = sol.value(vMtilde)';
+% vMtilde_opt = sol.value(vMtilde)';
 
 % Variables at collocation points
 % Muscle activations

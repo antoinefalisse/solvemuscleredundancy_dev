@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg as
 % described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of
@@ -209,11 +209,10 @@ a_min = 0; a_max = 1;                   % bounds on muscle activation
 vA_min = -1/100; vA_max = 1/100;        % bounds on derivative of muscle activation (scaled)
 vMtilde_min = -1; vMtilde_max = 1;      % bounds on normalized muscle fiber velocity
 lMtilde_min = 0.2; lMtilde_max = 1.8;   % bounds on normalized muscle fiber length
-
 % Time bounds
 t0 = DatStore.time(1); tf = DatStore.time(end);
 
-%% CasADi setup
+% CasADi setup
 import casadi.*
 opti = casadi.Opti();
 
@@ -257,9 +256,8 @@ for dof = 1:auxdata.Ndof
     IDinterp(:,dof) = ppval(auxdata.JointIDSpline(dof),time_opt);
 end
 
-% Variables, bounds & initial guess
+% Variables - bounds and initial guess
 % States (at mesh and collocation points)
-% States
 % Muscle activations
 a = opti.variable(auxdata.NMuscles,N+1);      % Variable at mesh points
 amesh = opti.variable(auxdata.NMuscles,d*N);  % Variable at collocation points
@@ -274,7 +272,6 @@ opti.subject_to(lMtilde_min < lMtilde < lMtilde_max);
 opti.subject_to(lMtilde_min < lMtildemesh < lMtilde_max);
 opti.set_initial(lMtilde, 1);
 opti.set_initial(lMtildemesh, 1);
-
 
 % Controls
 % Muscle excitations
@@ -291,7 +288,7 @@ opti.set_initial(vMtilde,0.01);
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
 for k=1:N
-    % Variables within observed mesh interval
+    % Variables within current mesh interval
     ak = a(:,k); lMtildek = lMtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; lMtildek_colloc = [lMtildek lMtildemesh(:,(k-1)*d+1:k*d)];
     vMtildek = vMtilde(:,k); aTk = aT(:,k); vAk = vA(:,k);
@@ -363,19 +360,6 @@ sol = opti.solve();
 diary off
 
 %% Extract results
-% Number of design variables
-NStates = 2*auxdata.NMuscles;
-NControls = 2*auxdata.NMuscles+auxdata.Ndof;
-NParameters = 0;
-% Number of design variables (in the loop)
-Nwl = NControls+d*(NStates)+NStates;
-% Number of design variables (in total)
-Nw = NParameters+NStates+N*Nwl;
-% Number of design variables before the variable corresponding to the first collocation point
-Nwm = NParameters+NStates+NControls;
-
-
-% Variables at mesh points
 % Variables at mesh points
 % Muscle activations and muscle-tendon forces
 a_opt = sol.value(a)';
@@ -387,7 +371,7 @@ vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-vMtilde_opt = sol.value(vMtilde)';
+% vMtilde_opt = sol.value(vMtilde)';
 
 % Variables at collocation points
 % Muscle activations

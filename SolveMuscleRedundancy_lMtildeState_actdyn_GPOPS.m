@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 1.1 (April 2017)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg using the
 % direct collocation optimal control software GPOPS-II as described in De
@@ -47,7 +47,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_actdyn(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %

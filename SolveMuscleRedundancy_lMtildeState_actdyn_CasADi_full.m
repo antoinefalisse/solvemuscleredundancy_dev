@@ -1,4 +1,4 @@
-% SolveMuscleRedundancy_lMtildeState, version 2.1 (October 2018)
+% SolveMuscleRedundancy_lMtildeState, version 2.1 (November 2018)
 %
 % This function solves the muscle redundancy problem in the leg as 
 % described in De Groote F, Kinney AL, Rao AV, Fregly BJ. Evaluation of 
@@ -51,7 +51,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_lMtildeState_actdyn_CasADi_full(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
