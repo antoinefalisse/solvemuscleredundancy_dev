@@ -82,6 +82,7 @@ DatStore.SoAct = act;
 DatStore.SoRAct = eT;
 SoForce = FMo.*(act.*FMltilde.*FMvtilde + Fpe); 
 DatStore.SoForce = SoForce;
+DatStore.cos_alpha = cos_alpha;
 
 % ------------------------------------------------------------------
 function f = objective_SO (x, auxdata)

@@ -224,16 +224,36 @@ pera_lower = -1 * ones(1, auxdata.NMuscles); pera_upper = 1 * ones(1, auxdata.NM
 perlMtilde_lower = -1*ones(1,auxdata.NMuscles); perlMtilde_upper = 1*ones(1,auxdata.NMuscles);
 bounds.eventgroup.lower = [pera_lower perlMtilde_lower]; bounds.eventgroup.upper = [pera_upper perlMtilde_upper];
 
+
+
+% Initial guess static optimization 
+time_opt = DatStore.time;
+SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
+SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
+SoForceInterp = interp1(DatStore.time,DatStore.SoForce.*DatStore.cos_alpha./DatStore.Fiso,time_opt);
+
+[lMInterp,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,DatStore.LMT,Misc.Atendon,Misc.shift);
+
+for m = 1:auxdata.NMuscles
+    lMtildeSpline(m) = spline(time_opt,lMtildeInterp(:,m));
+end
+for m = 1:auxdata.NMuscles
+[~,vMtildeinterp(:,m),~] = SplineEval_ppuval(lMtildeSpline(m),time_opt,1);
+vMtildeinterp(:,m) = vMtildeinterp(:,m)/auxdata.scaling.vMtilde;
+end
+
+
 % Initial guess
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
-% Static optimization results as initial guess
-% guess.phase.control = [DatStore.SoAct DatStore.SoRAct./150 0.01*ones(N,auxdata.NMuscles)];
-% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
-% Naive initial guess
-guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+% Based on SO result
+guess.phase.control = [zeros(N,auxdata.NMuscles) SoRActInterp(1:N,:)./150 vMtildeinterp(1:N,:)];
+guess.phase.state =  [SoActInterp lMtildeInterp];
+% Random
+% guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+% guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
+
 
 % Spline structures
 for dof = 1:auxdata.Ndof

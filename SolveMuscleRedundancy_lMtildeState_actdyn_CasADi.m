@@ -256,6 +256,21 @@ for dof = 1:auxdata.Ndof
     IDinterp(:,dof) = ppval(auxdata.JointIDSpline(dof),time_opt);
 end
 
+% Initial guess static optimization 
+SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
+SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
+SoForceInterp = interp1(DatStore.time,DatStore.SoForce.*DatStore.cos_alpha./DatStore.Fiso,time_opt);
+
+[lMInterp,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,LMTinterp,Misc.Atendon,Misc.shift);
+
+for m = 1:auxdata.NMuscles
+    lMtildeSpline(m) = spline(time_opt,lMtildeInterp(:,m));
+end
+for m = 1:auxdata.NMuscles
+[~,vMtildeinterp(:,m),~] = SplineEval_ppuval(lMtildeSpline(m),time_opt,1);
+vMtildeinterp(:,m) = vMtildeinterp(:,m)/auxdata.scaling.vMtilde;
+end
+
 % Variables - bounds and initial guess
 % States (at mesh and collocation points)
 % Muscle activations
@@ -263,15 +278,15 @@ a = opti.variable(auxdata.NMuscles,N+1);      % Variable at mesh points
 amesh = opti.variable(auxdata.NMuscles,d*N);  % Variable at collocation points
 opti.subject_to(a_min < a < a_max);           % Bounds
 opti.subject_to(a_min < amesh < a_max);
-opti.set_initial(a,0.2);                      % Initial guess (naive)
-opti.set_initial(amesh,0.2);
+opti.set_initial(a,SoActInterp');                      % Initial guess (naive)
+opti.set_initial(amesh,reshape(permute(repmat(SoActInterp(1:N,:),1,1,d),[3,1,2]),d*N,auxdata.NMuscles)');
 % Muscle fiber lengths
 lMtilde = opti.variable(auxdata.NMuscles,N+1);
 lMtildemesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(lMtilde_min < lMtilde < lMtilde_max);
 opti.subject_to(lMtilde_min < lMtildemesh < lMtilde_max);
-opti.set_initial(lMtilde, 1);
-opti.set_initial(lMtildemesh, 1);
+opti.set_initial(lMtilde,lMtildeInterp');
+opti.set_initial(lMtildemesh,reshape(permute(repmat(lMtildeInterp(1:N,:),1,1,d),[3,1,2]),d*N,auxdata.NMuscles)');
 
 % Controls
 % Muscle excitations
@@ -280,10 +295,11 @@ opti.subject_to(vA_min/tdeact < vA < vA_max/tact);
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);
+opti.set_initial(aT,SoRActInterp(1:N,:)');
 % Time derivative of muscle-tendon forces (states)
 vMtilde = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(vMtilde_min < vMtilde < vMtilde_max);
-opti.set_initial(vMtilde,0.01);
+opti.set_initial(vMtilde,vMtildeinterp(1:N,:)');
 
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
