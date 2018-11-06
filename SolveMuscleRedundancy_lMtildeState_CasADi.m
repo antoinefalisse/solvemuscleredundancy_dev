@@ -254,15 +254,12 @@ end
 SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
 SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
 SoForceInterp = interp1(DatStore.time,DatStore.SoForce.*DatStore.cos_alpha./DatStore.Fiso,time_opt);
-
-[lMInterp,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,LMTinterp,Misc.Atendon,Misc.shift);
-
+[~,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,LMTinterp,Misc.Atendon,Misc.shift);
+vMtildeinterp = zeros(size(lMtildeInterp));
 for m = 1:auxdata.NMuscles
-    lMtildeSpline(m) = spline(time_opt,lMtildeInterp(:,m));
-end
-for m = 1:auxdata.NMuscles
-[~,vMtildeinterp(:,m),~] = SplineEval_ppuval(lMtildeSpline(m),time_opt,1);
-vMtildeinterp(:,m) = vMtildeinterp(:,m)/auxdata.scaling.vMtilde;
+lMtildeSpline = spline(time_opt,lMtildeInterp(:,m));
+[~,vMtildeinterp_norm,~] = SplineEval_ppuval(lMtildeSpline,time_opt,1);
+vMtildeinterp(:,m) = vMtildeinterp_norm/auxdata.scaling.vMtilde;
 end
 
 % Variables - bounds and initial guess
@@ -272,7 +269,7 @@ a = opti.variable(auxdata.NMuscles,N+1);      % Variable at mesh points
 amesh = opti.variable(auxdata.NMuscles,d*N);  % Variable at collocation points
 opti.subject_to(a_min < a < a_max);           % Bounds
 opti.subject_to(a_min < amesh < a_max);
-opti.set_initial(a,SoActInterp');                      % Initial guess (naive)
+opti.set_initial(a,SoActInterp');             % Initial guess (static optimization)
 opti.set_initial(amesh,reshape(permute(repmat(SoActInterp(1:N,:),1,1,d),[3,1,2]),d*N,auxdata.NMuscles)');
 % Muscle fiber lengths
 lMtilde = opti.variable(auxdata.NMuscles,N+1);
@@ -285,7 +282,7 @@ opti.set_initial(lMtildemesh,reshape(permute(repmat(lMtildeInterp(1:N,:),1,1,d),
 % Controls
 e = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(e_min < e < e_max);
-opti.set_initial(e, 0)
+opti.set_initial(e, SoActInterp(1:N,:)');
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);

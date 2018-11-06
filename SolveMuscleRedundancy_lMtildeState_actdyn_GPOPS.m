@@ -240,15 +240,12 @@ time_opt = DatStore.time;
 SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
 SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
 SoForceInterp = interp1(DatStore.time,DatStore.SoForce.*DatStore.cos_alpha./DatStore.Fiso,time_opt);
-
-[lMInterp,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,DatStore.LMT,Misc.Atendon,Misc.shift);
-
+[~,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,DatStore.LMT,Misc.Atendon,Misc.shift);
+vMtildeinterp = zeros(size(lMtildeInterp));
 for m = 1:auxdata.NMuscles
-    lMtildeSpline(m) = spline(time_opt,lMtildeInterp(:,m));
-end
-for m = 1:auxdata.NMuscles
-[~,vMtildeinterp(:,m),~] = SplineEval_ppuval(lMtildeSpline(m),time_opt,1);
-vMtildeinterp(:,m) = vMtildeinterp(:,m)/auxdata.scaling.vMtilde;
+lMtildeSpline = spline(time_opt,lMtildeInterp(:,m));
+[~,vMtildeinterp_norm,~] = SplineEval_ppuval(lMtildeSpline,time_opt,1);
+vMtildeinterp(:,m) = vMtildeinterp_norm/auxdata.scaling.vMtilde;
 end
 
 
@@ -256,7 +253,7 @@ end
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
 % Based on SO result
-guess.phase.control = [zeros(N,auxdata.NMuscles) SoRActInterp(1:N,:)./150 vMtildeinterp(1:N,:)];
+guess.phase.control = [zeros(N,auxdata.NMuscles) SoRActInterp./150 vMtildeinterp];
 guess.phase.state =  [SoActInterp lMtildeInterp];
 % Random
 % guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
