@@ -237,18 +237,16 @@ lMtildeSpline = spline(time_opt,lMtildeInterp(:,m));
 vMtildeinterp(:,m) = vMtildeinterp_norm/auxdata.scaling.vMtilde;
 end
 
-
 % Initial guess
-N = length(DatStore.time);
 guess.phase.time = DatStore.time;
 % Based on SO result
 guess.phase.control = [SoActInterp SoRActInterp./150 vMtildeinterp];
 guess.phase.state =  [SoActInterp lMtildeInterp];
 % Random
+% N = length(DatStore.time);
 % guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
 % guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
-
 
 % Spline structures
 for dof = 1:auxdata.Ndof

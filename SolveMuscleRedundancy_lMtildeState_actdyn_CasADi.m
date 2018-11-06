@@ -406,7 +406,6 @@ tact = 0.015;
 tdeact = 0.06;
 e_opt = computeExcitationRaasch(a_opt(1:end-1,:),vA_opt_unsc,ones(1,auxdata.NMuscles)*tdeact,ones(1,auxdata.NMuscles)*tact);
 
-
 % Grid
 % Mesh points
 tgrid = linspace(t0,tf,N+1);

@@ -248,7 +248,6 @@ lMtildeSpline = spline(time_opt,lMtildeInterp(:,m));
 vMtildeinterp(:,m) = vMtildeinterp_norm/auxdata.scaling.vMtilde;
 end
 
-
 % Initial guess
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
@@ -350,4 +349,3 @@ OptInfo=output;
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
 [TForcetilde,TForce] = TendonForce_lMtilde(lMtilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 end
-

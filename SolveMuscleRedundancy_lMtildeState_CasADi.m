@@ -286,14 +286,11 @@ opti.set_initial(e, SoActInterp(1:N,:)');
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);
-opti.set_initial(aT,SoRActInterp(1:N,:)');
+opti.set_initial(aT,SoRActInterp(1:N,:)'./150);
 % Time derivative of muscle-tendon forces (states)
 vMtilde = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(vMtilde_min < vMtilde < vMtilde_max);
 opti.set_initial(vMtilde,vMtildeinterp(1:N,:)');
-
-
-
 
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
@@ -389,7 +386,6 @@ lMtilde_opt_ext(1:(d+1):end,:) = lMtilde_opt;
 lMtilde_opt_ext(2:(d+1):end,:) = lMtildemesh_opt(1:d:end,:);
 lMtilde_opt_ext(3:(d+1):end,:) = lMtildemesh_opt(2:d:end,:);
 lMtilde_opt_ext(4:(d+1):end,:) = lMtildemesh_opt(3:d:end,:);
-
 
 % Grid
 % Mesh points
