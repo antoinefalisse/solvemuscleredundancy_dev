@@ -1,4 +1,4 @@
-function DatStore = SolveStaticOptimization_IPOPT(DatStore)
+function DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore)
 
 % STEP 1. Inputs
 % --------------

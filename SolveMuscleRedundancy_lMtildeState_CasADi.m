@@ -153,7 +153,7 @@ Misc.shift = getShift(Misc.Atendon);
 % Extract the muscle-tendon properties
 [DatStore.params,DatStore.lOpt,DatStore.L_TendonSlack,DatStore.Fiso,DatStore.PennationAngle]=ReadMuscleParameters(model_path,DatStore.MuscleNames);
 % Static optimization using IPOPT solver
-DatStore = SolveStaticOptimization_IPOPT(DatStore);
+DatStore = SolveStaticOptimization_IPOPT_CasADi(DatStore);
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
