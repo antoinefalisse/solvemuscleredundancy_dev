@@ -161,6 +161,7 @@ auxdata.NMuscles = DatStore.nMuscles;   % number of muscles
 auxdata.Ndof = DatStore.nDOF;           % number of dofs
 auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
+auxdata.scaling.vMtilde = 10;
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
 for i = 1:auxdata.Ndof
