@@ -102,10 +102,3 @@ f_ActivationDynamics = Function('f_ActivationDynamics',{e_SX,a_SX},{dadt_SX});
 % end
 % datdttest2 = f_ActivationDynamics(etest,atest);
 % assertdadt = max(abs(datdttest-datdttest2));
-
-
-
-  
-
-
-
