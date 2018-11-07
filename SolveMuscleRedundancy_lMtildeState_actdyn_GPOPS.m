@@ -167,6 +167,7 @@ auxdata.NMuscles = DatStore.nMuscles;   % number of muscles
 auxdata.Ndof = DatStore.nDOF;           % number of dofs
 auxdata.ID = DatStore.T_exp;            % inverse dynamics
 auxdata.params = DatStore.params;       % Muscle-tendon parameters
+auxdata.scaling.vMtilde = 10;
 
 % ADiGator works with 2D: convert 3D arrays to 2D structure (moment arms)
 for i = 1:auxdata.Ndof
@@ -234,15 +235,28 @@ pera_lower = -1 * ones(1, auxdata.NMuscles); pera_upper = 1 * ones(1, auxdata.NM
 perlMtilde_lower = -1*ones(1,auxdata.NMuscles); perlMtilde_upper = 1*ones(1,auxdata.NMuscles);
 bounds.eventgroup.lower = [pera_lower perlMtilde_lower]; bounds.eventgroup.upper = [pera_upper perlMtilde_upper];
 
+% Initial guess static optimization 
+time_opt = DatStore.time;
+SoActInterp = interp1(DatStore.time,DatStore.SoAct,time_opt);
+SoRActInterp = interp1(DatStore.time,DatStore.SoRAct,time_opt);
+SoForceInterp = interp1(DatStore.time,DatStore.SoForce.*DatStore.cos_alpha./DatStore.Fiso,time_opt);
+[~,lMtildeInterp ] = FiberLength_Ftilde(SoForceInterp,DatStore.params,DatStore.LMT,Misc.Atendon,Misc.shift);
+vMtildeinterp = zeros(size(lMtildeInterp));
+for m = 1:auxdata.NMuscles
+lMtildeSpline = spline(time_opt,lMtildeInterp(:,m));
+[~,vMtildeinterp_norm,~] = SplineEval_ppuval(lMtildeSpline,time_opt,1);
+vMtildeinterp(:,m) = vMtildeinterp_norm/auxdata.scaling.vMtilde;
+end
+
 % Initial guess
 N = length(DatStore.time);
 guess.phase.time = DatStore.time;
 % Based on SO result
-% guess.phase.control = [zeros(N,auxdata.NMuscles) DatStore.SoRAct./150 zeros(N,auxdata.NMuscles)];
-% guess.phase.state =  [DatStore.SoAct ones(N,auxdata.NMuscles)];
+guess.phase.control = [zeros(N,auxdata.NMuscles) SoRActInterp./150 vMtildeinterp];
+guess.phase.state =  [SoActInterp lMtildeInterp];
 % Random
-guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
-guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
+% guess.phase.control = [zeros(N,auxdata.NMuscles) zeros(N,auxdata.Ndof) 0.01*ones(N,auxdata.NMuscles)];
+% guess.phase.state =  [0.2*ones(N,auxdata.NMuscles) ones(N,auxdata.NMuscles)];
 guess.phase.integral = 0;
 
 % Spline structures
@@ -335,4 +349,3 @@ OptInfo=output;
 lMTinterp = interp1(DatStore.time,DatStore.LMT,Time);
 [TForcetilde,TForce] = TendonForce_lMtilde(lMtilde,auxdata.params,lMTinterp,auxdata.Atendon,auxdata.shift);
 end
-
