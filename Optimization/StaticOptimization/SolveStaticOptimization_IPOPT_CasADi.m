@@ -1,4 +1,4 @@
-function DatStore = SolveStaticOptimization_IPOPT(DatStore)
+function DatStore = SolveStaticOptimization_IPOPT_CasADi(DatStore)
 
 % STEP 1. Inputs
 % --------------
@@ -45,15 +45,18 @@ for i = 1:nDOF
         reshape([temp zeros(N,i-1) ones(N,1) zeros(N,nDOF-i)]',I,1);    
 end
 
+% STEP 2. Optimization
+% --------------------
+
 import casadi.*
 opti = casadi.Opti(); % Create opti instance
-x = opti.variable((M+nDOF)*N);
+x = opti.variable((M+nDOF)*N); % Design variables
 lb = repmat([zeros(M,1); -1500000*ones(nDOF,1)],N,1);
 ub = repmat([ones(M,1); 1500000*ones(nDOF,1)],N,1);
 opti.subject_to(lb < x < ub); % Bounds
-auxdata = {M,N,nDOF,reshape(Fact',I,1),reshape(Fpas',I,1),ID_data,MomentArms};
+auxdata = ...
+    {M,N,nDOF,reshape(Fact',I,1),reshape(Fpas',I,1),ID_data,MomentArms};
 opti.minimize(0.5*sumsqr(x));
-
 [M, N, nDOF, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
   F = Fmax .* x + Fpas;  
   c = MX(nDOF*N,1);  
@@ -62,7 +65,7 @@ opti.minimize(0.5*sumsqr(x));
       MomentArm_matrix = reshape(MomentArm(:,k), M+nDOF, N)';
       c(k:nDOF:end) = sum(F_matrix.*MomentArm_matrix, 2) - ID_data(:,k); 
   end
-opti.subject_to(c == 0);
+opti.subject_to(c == 0); % Constraints
 % Settings
 optionssol.ipopt.nlp_scaling_method = 'gradient-based';
 optionssol.ipopt.linear_solver = 'mumps';
@@ -71,6 +74,7 @@ optionssol.ipopt.max_iter = 1000;
 % Solver
 opti.solver('ipopt',optionssol);
 sol = opti.solve();
+% Extract results
 x_opt = reshape(sol.value(x), M+nDOF, N)';
 act = x_opt(:,1:M);
 eT = x_opt(:, M+1:M+nDOF)*Topt;
