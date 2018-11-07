@@ -1,12 +1,17 @@
 function DatStore = SolveStaticOptimization_IPOPT(DatStore)
+import casadi.*
 
 % STEP 1. Inputs
 % --------------
+opti = casadi.Opti(); % Create opti instance
 
+
+    
 time = DatStore.time;
 N = length(time);
 M = DatStore.nMuscles;
-nDof = DatStore.nDOF;
+nDOF = DatStore.nDOF;
+
 
 load('ActiveFVParameters.mat','ActiveFVParameters');
 load('PassiveFLParameters','PassiveFLParameters');
@@ -29,36 +34,87 @@ FMo = ones(size(act,1),1)*DatStore.Fiso;
 Fpas = FMo.*Fpe.*cos_alpha;
 Fact = FMo.*FMltilde.*FMvtilde.*cos_alpha;
 
-% Add optimal force for reserve torques
-Topt = 150/sqrt(1000);
-Fpas = [Fpas zeros(N,nDof)];
-Fact = [Fact Topt*ones(N,nDof)];
 
 ID_data = DatStore.T_exp;
+x = SX.sym('x',N,M + nDOF);
 
-I = N*(M+nDof);
-MomentArms = zeros(I,nDof);
+% Add optimal force for reserve torques
+Topt = 150/sqrt(1000);
+Fpas = [Fpas zeros(N,nDOF)];
+Fact = [Fact Topt*ones(N,nDOF)];
+
+
+
+I = N*(M+nDOF);
+MomentArms = zeros(I,nDOF);
 temp = zeros(N,M);
-for i = 1:nDof    
+for i = 1:nDOF    
     temp(:,:) = DatStore.dM(:,i,:);
     MomentArms(:,i) = ...
-        reshape([temp zeros(N,i-1) ones(N,1) zeros(N,nDof-i)]',I,1);    
+        reshape([temp zeros(N,i-1) ones(N,1) zeros(N,nDOF-i)]',I,1);    
 end
+
+
+
+F = Fact .* x + Fpas;
+F_matrix = reshape(F, M+nDOF, N)';
+
+c = SX(nDOF*N,1);
+  
+for k = 1:nDOF
+  MomentArm_matrix = reshape(MomentArms(:,k), M+nDOF, N)';
+  c(k:nDOF:end) = sum(F_matrix.*MomentArm_matrix, 2) - ID_data(:,k); 
+end
+
+f_IDEquilibrium = Function('f_IDEquilibrium',{x},{c});
+
+
+
+
+    
+    
+    
+act = opti.variable(M,N);
+opti.subject_to(0 < act < 1);           % Bounds
+opti.set_initial(act,0.2);                      % Initial guess (naive)
+
+aT = opti.variable(nDOF,N);
+% opti.subject_to(-150 < aT < 150);
+
+opti.minimize(1000*sumsqr(aT) + sumsqr(act));
+
+
+
+
+
+
+c = f_IDEquilibrium([act; aT]');
+opti.subject_to(c == 0);
+
+optionssol.ipopt.nlp_scaling_method = 'gradient-based';
+optionssol.ipopt.linear_solver = 'mumps';
+optionssol.ipopt.tol = 1e-6;;
+optionssol.ipopt.max_iter = 1000;
+
+opti.solver('ipopt',optionssol);
+
+sol = opti.solve();
+
 
 % STEP 2. Optimization
 % --------------------
 
 % Initial guess
-x0 = repmat(0.01*ones(M+nDof,1),N,1);
+x0 = repmat(0.01*ones(M+nDOF,1),N,1);
 
 % Bounds
-options.lb = repmat([zeros(M,1); -1500000*ones(nDof,1)],N,1);
-options.ub = repmat([ones(M,1); 1500000*ones(nDof,1)],N,1);
-options.cl = repmat(zeros(nDof,1),N,1);
-options.cu = repmat(zeros(nDof,1),N,1);
+options.lb = repmat([zeros(M,1); -1500000*ones(nDOF,1)],N,1);
+options.ub = repmat([ones(M,1); 1500000*ones(nDOF,1)],N,1);
+options.cl = repmat(zeros(nDOF,1),N,1);
+options.cu = repmat(zeros(nDOF,1),N,1);
 
 % Auxiliary data.
-options.auxdata = { M N nDof reshape(Fact', I, 1)  reshape(Fpas', I, 1) ...
+options.auxdata = { M N nDOF reshape(Fact', I, 1)  reshape(Fpas', I, 1) ...
     ID_data MomentArms};
 options.ipopt.mu_strategy      = 'adaptive';
 options.ipopt.max_iter         = 100;
@@ -73,10 +129,10 @@ funcs.jacobian          = @jacobian_SO;
 funcs.jacobianstructure = @jacobianstructure_SO;
 
 [x,~] = ipopt_auxdata(x0,funcs,options);
-x_opt = reshape(x, M+nDof, N)';
+x_opt = reshape(x, M+nDOF, N)';
 
 act = x_opt(:,1:M);
-eT = x_opt(:, M+1:M+nDof)*Topt;
+eT = x_opt(:, M+1:M+nDOF)*Topt;
 
 DatStore.SoAct = act;
 DatStore.SoRAct = eT;
@@ -90,16 +146,16 @@ function f = objective_SO (x, auxdata)
   
 % ------------------------------------------------------------------
 function c = constraints_SO (x, auxdata)
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
+  [M, N, nDOF, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
   
   F = Fmax .* x + Fpas;
   
-  c = zeros(nDof*N,1);
+  c = zeros(nDOF*N,1);
   
-  for k = 1:nDof
-      F_matrix = reshape(F, M+nDof, N)';
-      MomentArm_matrix = reshape(MomentArm(:,k), M+nDof, N)';
-      c(k:nDof:end) = sum(F_matrix.*MomentArm_matrix, 2) - ID_data(:,k); 
+  for k = 1:nDOF
+      F_matrix = reshape(F, M+nDOF, N)';
+      MomentArm_matrix = reshape(MomentArm(:,k), M+nDOF, N)';
+      c(k:nDOF:end) = sum(F_matrix.*MomentArm_matrix, 2) - ID_data(:,k); 
   end
 
 % ------------------------------------------------------------------
@@ -108,13 +164,13 @@ function g = gradient_SO (x, auxdata)
 
 % ------------------------------------------------------------------
 function J = jacobianstructure_SO (auxdata)  
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
+  [M, N, nDOF, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
   
-  nA = M + nDof; % number of actuators
-  J = zeros(nDof*N,(nA)*N);
+  nA = M + nDOF; % number of actuators
+  J = zeros(nDOF*N,(nA)*N);
   for i = 1:N
-      for k = 1:nDof
-          J(k+(i-1)*nDof,nA*(i-1)+1:nA*i) = MomentArm((i-1)*nA+1:i*nA,k)';
+      for k = 1:nDOF
+          J(k+(i-1)*nDOF,nA*(i-1)+1:nA*i) = MomentArm((i-1)*nA+1:i*nA,k)';
       end
   end
   
@@ -122,13 +178,13 @@ function J = jacobianstructure_SO (auxdata)
     
 % ------------------------------------------------------------------
 function J = jacobian_SO (x, auxdata)  
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
+  [M, N, nDOF, Fmax, Fpas, ID_data, MomentArm] = deal(auxdata{:});
   
-  nA = M + nDof; % number of actuators
-  J = zeros(nDof*N,(nA)*N);
+  nA = M + nDOF; % number of actuators
+  J = zeros(nDOF*N,(nA)*N);
   for i = 1:N
-      for k = 1:nDof
-          J(k+(i-1)*nDof,nA*(i-1)+1:nA*i) = ...
+      for k = 1:nDOF
+          J(k+(i-1)*nDOF,nA*(i-1)+1:nA*i) = ...
               Fmax((i-1)*nA+1:i*nA)'.*MomentArm((i-1)*nA+1:i*nA,k)';
       end
   end
