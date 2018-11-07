@@ -2,7 +2,7 @@
 \contentsline {section}{\numberline {1}Release notes}{2}{section.1}
 \contentsline {subsection}{\numberline {1.1}Release 2.1}{2}{subsection.1.1}
 \contentsline {section}{\numberline {2}Overview}{2}{section.2}
-\contentsline {section}{\numberline {3}Installation Instruction}{2}{section.3}
+\contentsline {section}{\numberline {3}Installation Instruction}{3}{section.3}
 \contentsline {section}{\numberline {4}Main Function}{3}{section.4}
 \contentsline {subsection}{\numberline {4.1}Using GPOPS}{3}{subsection.4.1}
 \contentsline {subsubsection}{\numberline {4.1.1}With explicit activation dynamics formulation (De Groote et al. (2016))}{3}{subsubsection.4.1.1}
@@ -21,8 +21,9 @@
 \contentsline {subsection}{\numberline {6.1}Setup}{8}{subsection.6.1}
 \contentsline {subsection}{\numberline {6.2}Output}{8}{subsection.6.2}
 \contentsline {section}{\numberline {7}Muscle model}{8}{section.7}
-\contentsline {section}{\numberline {8}Examples}{8}{section.8}
-\contentsline {subsection}{\numberline {8.1}Walking example De Groote et al. 2016}{8}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}Running example De Groote et al. 2016}{9}{subsection.8.2}
-\contentsline {subsection}{\numberline {8.3}OpenSim installation example Gait10dof18m}{11}{subsection.8.3}
-\contentsline {subsection}{\numberline {8.4}OpenSim installation example Gait23dof54m}{12}{subsection.8.4}
+\contentsline {section}{\numberline {8}Tips and Tricks}{8}{section.8}
+\contentsline {section}{\numberline {9}Examples}{8}{section.9}
+\contentsline {subsection}{\numberline {9.1}Walking example De Groote et al. 2016}{8}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Running example De Groote et al. 2016}{10}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}OpenSim installation example Gait10dof18m}{11}{subsection.9.3}
+\contentsline {subsection}{\numberline {9.4}OpenSim installation example Gait23dof54m}{12}{subsection.9.4}
