@@ -6,6 +6,21 @@ From v1.1, an implicit formulation of activation dynamics can be used to solve t
 
 Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., 2009) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
 
+From v2.1, CasADi can be used as an alternative to GPOPS-II and ADiGator. CasADi is an open-source tool for nonlinear optimization and algorithmic differentiation (\url{https://web.casadi.org/}). Results using CasADi and GPOPS-II are very similar (differences can be attributed to the different direct collocation formulations and scaling). We used CasADi's Opti stack, which is a collection of CasADi helper classes that provides a close correspondence between mathematical NLP notation and computer code (\url{https://web.casadi.org/docs/#document-opti}). CasADi is actively maintained and developed, and has an active forum (\url{https://groups.google.com/forum/#!forum/casadi-users}). \\
+
+From v1.1, an implicit formulation of activation dynamics can be used to solve the muscle redundancy problem. Additionally, by using the activation dynamics model proposed by Raasch et al. (1997), we could introduce a nonlinear change of variables to exactly impose activation dynamics in a continuously differentiable form, omitting the need for a smooth approximation such as described in De Groote et al. (2016). A result of this change of variables is that muscle excitations are not directly accessible during the optimization. Therefore, we replaced muscle excitations by muscle activations in the objective function. This implicit formulation is described in \textit{De Groote F, Pipeleers G, Jonkers I, Demeulenaere B, Patten C, Swevers J, De Schutter J. A physiology based inverse dynamic analysis of human gait: potential and perspectives F. Computer Methods in Biomechanics and Biomedical Engineering (2009).} \url{http://www.tandfonline.com/doi/full/10.1080/10255840902788587}. Results from both formulations are very similar (differences can be attributed to the slightly different activation dynamics models and cost functions). However, the formulation with implicit activation dynamics (De Groote et al., (2009)) is computationally faster. This can mainly be explained by the omission of a tanh function in the constraint definition, whose evaluation is computationally expensive when solving the NLP.
+
+## Release Notes
+
+### Release 2.1
+
+- CasADi was added as an alternative to GPOPS-II and ADiGator
+
+- The reserve actuators (RActivation) were unscaled in the output of the main functions.
+
+- The time derivatives of the muscle contraction dynamics states, i.e. normalized muscle fiber velocities or derivatives of normalized tendon forces, were added to the cost function with a small weighting factor to prevent spiky outputs.
+- The tendon stiffness was added as an optional user parameter
+
 ## Installation Instruction
 
 Add the main folder and subfolder to your MATLAB path 
@@ -20,22 +35,34 @@ Several software packages are needed to run the program
 - GPOPS implementation (v1)
   - GPOPS-II is used to solve the optimal control problem using direct collocation (http://www.gpops2.com/). A one-time 30-day trial license is avaiable for all users who register.
   - ADiGator is used for automatic differentiation https://sourceforge.net/projects/adigator/.
-- Casadi implementation (v2)
-  - Casadi is used instead of GPOPS to solve the optimal control problem. Casadi is an open-source tool for nonlinear optimization and algorithmic differentiation (https://web.casadi.org/)
+- Using CasADi
+  - CasADi is used for nonlinear optimization and algorithmic differentiation (https://web.casadi.org/).
 
 ## Main Function
 
 SolveMuscleRedundancy is the main function of this program and is used to solve the muscle redundancy problem. There are four variants of this function:
 
-### With explicit activation dynamics formulation (De Groote et al. (2016))
+### Using GPOPS
 
+With explicit activation dynamics formulation (De Groote et al. (2016)):
 - SolveMuscleRedundancy_FtildeState uses the normalized tendon force as a state
 - SolveMuscleRedundancy_lMtildeState uses the normalized muscle fiber length as a state
 
-### With implicit activation dynamics formulation (De Groote et al. (2009))
-
+With implicit activation dynamics formulation (De Groote et al. (2009)):
 - SolveMuscleRedundancy_FtildeState_actdyn uses the normalized tendon force as a state
 - SolveMuscleRedundancy_lMtildeState_actdyn uses the normalized muscle fiber length as a state
+
+### Using CasADi
+
+With explicit activation dynamics formulation (De Groote et al. (2016)):
+- SolveMuscleRedundancy_FtildeState_CasADi uses the normalized tendon force as a state
+- SolveMuscleRedundancy_lMtildeState_CasADi uses the normalized muscle fiber length as a state
+
+
+With implicit activation dynamics formulation (De Groote et al. (2009)):
+- SolveMuscleRedundancy_FtildeState_actdyn_CasADi uses the normalized tendon force as a state
+- SolveMuscleRedundancy_lMtildeState_actdyn_CasADi uses the normalized muscle fiber length as a state
+
 
 ### Input Arguments
 
@@ -74,7 +101,7 @@ Optional input arguments
 
 - **Misc**.Mesh_Frequency: Number of mesh interval per second (default is 100, but a denser mesh might be required to obtain the desired accuracy especially for faster motions).
 
-  ### Output arguments
+  ### Output arguments GPOPS
 
 - Time: time vector.
 - MExcitation: optimal muscle excitation (matrix dimension: number of collocation points x number of muscles).
@@ -82,13 +109,38 @@ Optional input arguments
 - RActivation: activation of the reserve actuators (matrix dimension: number of collocation points x number of degrees of freedom).
 - TForcetilde: normalized tendon force (matrix dimension: number of collocation points x number of muscles).
 - TForce: tendon force (matrix dimension: number of collocation points x number of muscles).
-- lMtilde: normalized muscle fiber length (matrix dimension: number of collocation points x number of muscles).
-- lM:  muscle fiber length (matrix dimension: number of collocation points x number of muscles)	.
+- lMtilde: normalized muscle fiber length (matrix dimension: number of collocation 
+
+ - MActivation: muscle activation
+   - MActivation.meshPoints: muscle activation at mesh points (matrix dimension: number of mesh points x number of muscles).
+  - MActivation.collocationPoints: muscle activation at collocation points (matrix dimension: number of collocation points x number of muscles). 
+    \end{enumerate}
+
+	- Activation.meshPoints: activation of the reserve actuators (matrix dimension: number of mesh points x number of degrees of freedom).
+
+ - TForcetilde: normalized tendon force 
+  - TForcetilde.meshPoints: normalized tendon force at mesh points (matrix dimension: number of mesh points x number of muscles).
+  - TForcetilde.collocationPoints: normalized tendon force at collocation points (matrix dimension: number of collocation points x number of muscles). 
+    \end{enumerate}
+
+ - TForce: tendon force 
+    - TForce.meshPoints: tendon force at mesh points (matrix dimension: number of mesh points x number of muscles).
+    - TForce.collocationPoints: tendon force at collocation points (matrix dimension: number of collocation points x number of muscles). 
+
+ - lMtilde: normalized muscle fiber length 
+  - lMtilde.meshPoints: normalized muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
+  - lMtilde.collocationPoints: normalized muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
+    \end{enumerate}	
+
+- lM: muscle fiber length
+   - M.meshPoints: muscle fiber length at mesh points (matrix dimension: number of mesh points x number of muscles).
+   - lM.collocationPoints: muscle fiber length at collocation points (matrix dimension: number of collocation points x number of muscles). 
+
 - MuscleNames: cell array that contains the names of the selected muscles (matrix dimension: number of muscles).
-- OptInfo: output structure created by GPOPS-II.
+
+- OptInfo: output structure with settings used in CasADi.
+
 - DatStore: data structure with input information for the optimal control problem.
-
-
 
 ## GPOPS-II
 
