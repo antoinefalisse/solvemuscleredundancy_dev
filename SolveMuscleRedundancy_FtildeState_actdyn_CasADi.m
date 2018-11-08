@@ -152,6 +152,14 @@ Misc.shift = getShift(Misc.Atendon);
 % dynamic optimization
 % Extract the muscle-tendon properties
 [DatStore.params,DatStore.lOpt,DatStore.L_TendonSlack,DatStore.Fiso,DatStore.PennationAngle]=ReadMuscleParameters(model_path,DatStore.MuscleNames);
+% Here we change the tendon slack length based on the tendon stiffness
+idx_Gas = find(strcmp(DatStore.MuscleNames,'gastroc_r'));
+idx_Sol = find(strcmp(DatStore.MuscleNames,'soleus_r'));
+DatStore.params(3,idx_Gas) = getlTs(DatStore.params(3,idx_Gas),Misc.Atendon(idx_Gas));
+DatStore.params(3,idx_Sol) = getlTs(DatStore.params(3,idx_Sol),Misc.Atendon(idx_Sol));
+DatStore.L_TendonSlack(idx_Gas) = getlTs(DatStore.L_TendonSlack(idx_Gas),Misc.Atendon(idx_Gas));
+DatStore.L_TendonSlack(idx_Sol) = getlTs(DatStore.L_TendonSlack(idx_Sol),Misc.Atendon(idx_Sol));
+
 % Static optimization using IPOPT solver
 DatStore = SolveStaticOptimization_IPOPT_CasADi(DatStore);
 
