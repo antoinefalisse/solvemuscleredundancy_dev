@@ -1,7 +1,7 @@
 function [DatStore] = getMuscleInfo(IK_path,ID_path,Misc)
 %   Get_dof_MuscleInfo selects the DOF that are acuated by muscles specified by the user and selects for those dof the moment arms of the muscles
 %   author: Maarten Afschrift,
-%   Last Update: 17 December 2018
+%   Last Update: 29 Januari 2019
 
 %% Read muscle analysis
 % Pre-allocate loop variables
@@ -14,7 +14,7 @@ for i=1:length(Misc.DofNames_Input)
     % read the Muscle Analysis Result
     MA_FileName=fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']);
     if exist(MA_FileName,'file')
-        dm_Data_temp=importdata(fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']));
+        dm_Data_temp=importdata(fullfile(Misc.MuscleAnalysisP29ath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']));
     else
         error(['Cannot open muscle analysis results for: ' Misc.DofNames_Input{i}])
     end
@@ -23,7 +23,6 @@ for i=1:length(Misc.DofNames_Input)
     if i==1    
         nfr = length(dm_Data_temp.data(:,1));
         headers=dm_Data_temp.colheaders;
-        %Add a comment to this line
         Inds_muscles=nan(length(Misc.MuscleNames_Input),1);        
         ctm=1;
         for j=1:length(Misc.MuscleNames_Input)
@@ -45,9 +44,9 @@ for i=1:length(Misc.DofNames_Input)
         Mus_inds=ind0:ind_end;
     end
     
-    % Evaluate if one of the muscles spans this DOF (when moment arms > 0.01)
+    % Evaluate if one of the muscles spans this DOF (when moment arms > 0.001)
     dM=dm_Data_temp.data(Mus_inds,Inds_muscles);    
-    if any(any(abs(dM)>0.01))
+    if any(any(abs(dM)>0.001))
         Misc.DofNames_muscles{ct}=Misc.DofNames_Input{i};
         dM_temp(:,i,:)=dM;
         DOF_inds(ct)=i;
@@ -91,7 +90,7 @@ fs=1/mean(diff(t_lMT));             % sampling frequency
 [B,A] = butter(Misc.f_order_lMT,Misc.f_cutoff_lMT/(fs/2));
 DatStore.LMT = filtfilt(B,A,LMT_raw);
 
-% store infomration in the DatStore structure
+% store information in the DatStore structure
 DatStore.MuscleNames = Misc.MuscleNames;
 DatStore.DOFNames    = Misc.DofNames;
 DatStore.nMuscles    = length(Misc.MuscleNames);
@@ -150,9 +149,9 @@ ind0=find(t_ID>=Misc.time(1),1,'first'); ind_end=find(t_ID<=Misc.time(2),1,'last
 ID_inds=ind0:ind_end;
 
 %% store the data
-DatStore.T_exp=ID_data_int(ID_inds,ID_Header_inds);
-DatStore.q_exp       = IK_data.data(IK_inds,IK_Header_inds); 
-DatStore.time=t_IK(IK_inds);
+DatStore.T_exp = ID_data_int(ID_inds,ID_Header_inds);
+DatStore.q_exp = IK_data.data(IK_inds,IK_Header_inds); 
+DatStore.time = t_IK(IK_inds);
 
 
 % check if size of IK and ID matrices are equal
