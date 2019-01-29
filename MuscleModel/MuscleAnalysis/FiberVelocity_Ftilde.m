@@ -1,8 +1,7 @@
-% This function computes the muscle fiber length from the normalized tendon
-% force
 
-function [lM,lMtilde,vM,vMtilde,lTtilde ] = FiberVelocity_Ftilde(Ftilde,dfse,params,lMT,vMT,Atendon,shift)
 
+function [lM,lMtilde,vM,vMtilde,lTtilde ] = FiberKinematics_Ftilde(Ftilde,dfse,params,lMT,vMT,Atendon,shift)
+% This function computes the muscle fiber length and velocity with force as a state (force and rate of force)
 
 % input arguments
 lMo = ones(size(Ftilde,1),1)*params(2,:);
@@ -20,8 +19,6 @@ lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
 lMtilde = lM./lMo;
 
 % Hill-model relationship
-lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
-lMtilde = lM./lMo;
 vT = lTs.*dfse./(0.2*Atendon.*exp(Atendon.*(lTtilde-0.995)));
 cos_alpha = (lMT-lTs.*lTtilde)./lM;
 vM = (vMT-vT).*cos_alpha;
