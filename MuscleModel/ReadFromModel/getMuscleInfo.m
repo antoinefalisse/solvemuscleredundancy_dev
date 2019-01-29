@@ -129,7 +129,7 @@ if ~isfield(ID_data,'colheaders')
     ID_data.colheaders=strsplit(ID_data.textdata{end});
 end
 ID_header=ID_data.colheaders;     IK_header = IK_data.colheaders;
-ID_Header_inds=length(DOF_inds);  IK_Header_inds = length(DOF_inds);
+ID_Header_inds=zeros(size(DOF_inds));  IK_Header_inds = zeros(size(DOF_inds));
 for i=1:length(Misc.DofNames)
    ID_Header_inds(i)=find(strcmp([Misc.DofNames{i} '_moment'],ID_header));
    IK_Header_inds(i)=find(strcmp(Misc.DofNames{i},IK_header)); 
