@@ -1,4 +1,4 @@
-function phaseout = musdynContinous_FtildeState_vA(input)
+function phaseout = musdynContinous_FtildeState_vA_EMG(input)
 
 % Get input data
 NMuscles        = input.auxdata.NMuscles;
@@ -48,7 +48,15 @@ for dof = 1:Ndof
     Tdiff(:,dof) =  (T_exp-T_sim);
 end
 
-phaseout.path = [Tdiff Hilldiff act1 act2];
+
+% EMG constraints
+Scale_EMG   = input.phase.parameter;
+EMG         = splinestruct.EMG;
+a_EMG       = a(:,input.auxdata.EMGindices);
+EMG_error   = a_EMG - Scale_EMG.*EMG;
+
+% outputs
+phaseout.path = [Tdiff Hilldiff act1 act2 EMG_error];
 
 % DYNAMIC CONSTRAINTS
 % Activation dynamics is implicit
