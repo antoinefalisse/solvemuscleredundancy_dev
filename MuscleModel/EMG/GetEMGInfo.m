@@ -13,10 +13,12 @@ end
 
 % safety check
 bool_error = 0;
+IndError=zeros(length(Misc.EMGSelection),1);
 for i=1:length(Misc.EMGSelection)
     if ~any(strcmp(Misc.EMGSelection{i},DatStore.MuscleNames))
         disp(['Could not find ' Misc.EMGSelection{i} ' in the model, Update the Misc.EMGSelection structure']);
         bool_error=1;
+        IndError(i)=1;
     end
 end
 for i=1:length(Misc.EMGSelection)
@@ -27,10 +29,15 @@ for i=1:length(Misc.EMGSelection)
             disp(['Could not find ' Misc.EMGSelection{i} ' in the header of the EMG file, Update the headers in:  Misc.EMGheaders']);
         end
         bool_error=1;
+        IndError(i)=1;
     end
 end
+
+
 if bool_error ==1
-    error('Stopping program, see error message(s) above');
+    warning(['Removed several muscles with EMG informaion from the',...
+        ' analysis because these muscles are not in the model, or do not span the selected DOFs (see above)']);
+    Misc.EMGSelection(find(IndError)) = [];
 end
 
 % get the EMG data

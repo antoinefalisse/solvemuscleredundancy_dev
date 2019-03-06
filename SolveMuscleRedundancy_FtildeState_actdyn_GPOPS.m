@@ -158,6 +158,11 @@ end
 Misc.shift = getShift(Misc.Atendon);
 [DatStore] = getMuscleInfo(IK_path,ID_path,Misc);
 
+% update Tendon stiffness for specific muscles based on input arguments
+if isfield(Misc,'Set_ATendon_ByName') && ~isempty(Misc.Set_ATendon_ByName)
+   [Misc,DatStore] = set_ATendon_ByName(Misc,DatStore);
+end
+
 % ----------------------------------------------------------------------- %
 % Solve the muscle redundancy problem using static optimization --------- %
 

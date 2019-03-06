@@ -1,5 +1,5 @@
 %% Example solve muscle redundancy with an MRI model
-
+clear all; close all; clc;
 % Install instructions:
 %   Add the main path ...\solvemuscleredundancy_dev to your matlab folder,
 %   using the following command (in my case)
@@ -11,7 +11,8 @@ addpath(genpath(MainPath));
 Datapath =fullfile(MainPath,'Examples','EMG_constraintMRI');
 IK_path = fullfile(Datapath,'gait1_kinematics.mot');      % point to the IK file
 ID_path = fullfile(Datapath,'inverse_dynamics.sto');      % point to the ID file
-model_path = fullfile(Datapath,'SEMLS_2_MRI_final.osim');         % point to the model
+% model_path = fullfile(Datapath,'SEMLS_2_MRI_final.osim');         % point to the model
+model_path = fullfile(Datapath,'SEMLS_2_gen_final.osim');         % point to the model
 % time = [3.39 1.4];                                         % Time window for analysis
 Out_path=fullfile(MainPath,'Results_MRI');                    % folder to store results
 
@@ -20,12 +21,19 @@ IK = importdata(IK_path);
 time = [IK.data(1,1) IK.data(end,1)];
 
 % settings
-Misc.DofNames_Input={'ankle_flex_r','knee_flex_r','hip_flex_r'};    % select the DOFs you want to include in the optimization
+Misc.DofNames_Input={'ankle_flex_r','knee_flex_r'};    % select the DOFs you want to include in the optimization
+% Misc.DofNames_Input={'ankle_flex_r','knee_flex_r','hip_flex_r','hip_add_r','hip_rot_r'};    % select the DOFs you want to include in the optimization
 Misc.RunAnalysis = 1;   % boolean to select if you want to run the muscle analysis
-Misc.Par_Elastic = 0;   % boolean to select if you want a parallel elastic element in your model
-Misc.FL_Relation = 0;   % boolean to select if you want a account for force-length and force-velocity properties
+Misc.Par_Elastic = 1;   % boolean to select if you want a parallel elastic element in your model
+Misc.FL_Relation = 1;   % boolean to select if you want a account for force-length and force-velocity properties
 % Note: Currently no option to account for parallel elastic element, but
 % not for force length properties
+
+% settings related to tendon stiffness
+Misc.ATendon = [];      % default way to set tendon stiffenss (default values is 35)
+Misc.Set_ATendon_ByName = {'gas_med_r',80;
+    'gas_lat_r',80;
+    'soleus_r',80};
 
 % information for the EMG constraint
 Misc.EMGconstr = 1;     % Boolean to select EMG constrained option
@@ -76,6 +84,7 @@ legend(Misc.DofNames_Input);
 % the reserve actuator in static optimization
 figure();
 plot(Time,RActivation); hold on;         % Dynamic optimization (i.e. Full hill type model)
+plot(DatStore.time,DatStore.SoRAct,'--k');
 legend(Misc.DofNames_Input);
 
 % plot norm. muscle length

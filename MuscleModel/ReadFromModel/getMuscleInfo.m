@@ -7,6 +7,7 @@ function [DatStore] = getMuscleInfo(IK_path,ID_path,Misc)
 % Pre-allocate loop variables
 DOF_inds=nan(length(Misc.DofNames_Input),1);
 ct=1;
+nDof = length(Misc.DofNames_Input);
 
 % Loop over each DOF in the model
 for i=1:length(Misc.DofNames_Input)
@@ -36,7 +37,7 @@ for i=1:length(Misc.DofNames_Input)
         end
         Misc.MuscleNames=Misc.MuscleNames_Input(IndsNames_sel);
         Inds_muscles(isnan(Inds_muscles))=[];                               % Delete the muscles names that are not selected by the user
-        dM_temp=nan(nfr,length(Misc.DofNames_Input),length(Misc.MuscleNames));    % pre-allocate moment arms
+        dM_temp=nan(nfr,nDof,length(Misc.MuscleNames));    % pre-allocate moment arms
         
         % read indexes in time frame for muscle analysis
         t_Mus=dm_Data_temp.data(:,1);           t_Mus=round(t_Mus*10000)/10000;
@@ -48,7 +49,11 @@ for i=1:length(Misc.DofNames_Input)
     dM=dm_Data_temp.data(Mus_inds,Inds_muscles);    
     if any(any(abs(dM)>0.001))
         Misc.DofNames_muscles{ct}=Misc.DofNames_Input{i};
-        dM_temp(:,i,:)=dM;
+        if nDof ==1
+            dM_temp = dM;
+        else
+            dM_temp(:,i,:)=dM;
+        end
         DOF_inds(ct)=i;
         ct=ct+1;   
     end     
@@ -74,7 +79,11 @@ for i=1:length(Misc.DofNames_Input)
 end
 
 % Filter the moment arms information and store them in DatStore.dM
-dM_raw=dM_temp(:,DOF_inds,:);
+if nDof == 1
+    dM_raw(:,1,:) = dM_temp;
+else
+    dM_raw = dM_temp(:,DOF_inds,:);
+end
 t_dM = dm_Data_temp.data(:,1);
 t_dM=round(t_dM*10000)/10000;
 fs=1/mean(diff(t_dM));
