@@ -52,11 +52,11 @@ for i=1:length(Misc.EMGSelection)
 end
 
 % add twins
-nCopy = length(Misc.EMG_MuscleCopies);
+nCopy = length(Misc.EMG_MuscleCopies(:,1));
 EMGsel = [EMGsel zeros(nfr,nCopy)];
 EMGindices = [ EMGindices ; zeros(nCopy,1)];
 
-for j=1:length(Misc.EMG_MuscleCopies)
+for j=1:length(Misc.EMG_MuscleCopies(:,1))
     NameSel = Misc.EMG_MuscleCopies{j,1};
     NameCopy =  Misc.EMG_MuscleCopies{j,2};
     

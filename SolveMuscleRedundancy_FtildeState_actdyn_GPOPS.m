@@ -186,7 +186,7 @@ if Misc.EMGconstr
     disp('Static Optimization running');
     DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore);
 else
-    DatStore = SolveStaticOptimization_IPOPT_GPOPS_(DatStore);
+    DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore);
 end
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
