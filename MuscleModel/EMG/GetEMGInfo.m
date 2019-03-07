@@ -10,6 +10,44 @@ if ~isempty(Misc.EMGheaders)
     EMGheaders = Misc.EMGheaders;
     bool_updateheader=1;
 end
+[nfr, nc]= size(EMGdat);
+
+% process the EMG through activation dynamics
+
+if isfield(Misc,'ActDynEMG') && Misc.ActDynEMG == 1
+    disp('Running Activation dynamics on EMG data');
+    % integrator settings
+    AbsTol = 1e-5;      RelTol = 1e-3;
+    options = odeset('AbsTol',AbsTol,'RelTol',RelTol);
+    % pre-allcation
+    actEMG = nan(nfr,nc);
+    time = EMGdat(:,1);
+    actEMG(:,1) = time;  % copy the time column
+    tsim = [time(1) time(end)];
+    if isfield(Misc,'PlotBool') && Misc.PlotBool ==1
+        figure();
+    end    
+    for i=2:nc        
+        e = EMGdat(:,i);
+        x0 = mean(e(1:3));      % initial state based on excitations in first frames
+        [t,x] = ode15s(@ActivationOde,tsim,x0, options, time, e);
+        actEMG(:,i) = interp1(t,x,time);        
+        if isfield(Misc,'PlotBool') && Misc.PlotBool ==1
+            subplot(4,ceil((nc-1)./4),i-1);
+            plot(time,e,'r'); hold on;
+            plot(t,x,'--b');
+            if i == nc
+                legend('EMG','actEMG');
+                title(EMGheaders{i});
+            end
+        end
+    end    
+    EMGdat = actEMG;    
+end
+
+
+
+
 
 % safety check
 bool_error = 0;
@@ -42,7 +80,6 @@ end
 
 % get the EMG data
 nIn = length(Misc.EMGSelection);
-[nfr, nc]= size(EMGdat);
 EMGsel = nan(nfr,nIn);   EMGindices = nan(nIn,1);
 EMGselection = Misc.EMGSelection;
 for i=1:length(Misc.EMGSelection)

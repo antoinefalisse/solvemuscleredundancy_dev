@@ -97,6 +97,20 @@ if time(1)==time(2)
     warning('Time window should be at least 0.01s');
 end
 
+
+if ~isdir(OutPath)
+    mkdir(OutPath)
+end
+
+
+if isfield(Misc,'EMGconstr') && Misc.EMGconstr == 1
+    if ~isfield(Misc,'EMGSelection') || isempty(Misc.EMGSelection)
+        Misc.EMGconstr = 0;
+        warning('Misc.EMGSelection does not exist or is empty, EMG constraint switched off');
+    end
+end
+
+
 % ------------------------------------------------------------------------%
 % Compute ID -------------------------------------------------------------%
 if isempty(ID_path) || ~exist(ID_path,'file')
@@ -171,9 +185,9 @@ end
 if Misc.EMGconstr
     [DatStore] = GetEMGInfo(Misc,DatStore);
     disp('Static Optimization running');
-    DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore);
+    DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore,Misc);
 else
-    DatStore = SolveStaticOptimization_IPOPT_GPOPS_(DatStore);
+    DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore);
 end
 
 %% ---------------------------------------------------------------------- %

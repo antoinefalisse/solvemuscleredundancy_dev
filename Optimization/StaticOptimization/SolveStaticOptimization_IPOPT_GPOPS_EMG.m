@@ -1,7 +1,16 @@
-function DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore)
+function DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore,Misc)
 
 % STEP 1. Inputs
 % --------------
+
+
+bool_scaleBounds = 0;
+if isfield(Misc,'BoundsScale_EMG') && Misc.BoundsScale_EMG == 1
+    DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore);
+    MaxAct = max(DatStore.SoAct);
+    SoBound = MaxAct(DatStore.EMGindices);
+    bool_scaleBounds = 1;
+end
 
 time = DatStore.time;
 N = length(time);
@@ -71,10 +80,29 @@ actEMG      = DatStore.actEMGintSO;
 x0 = [repmat(0.01*ones(M+nDof,1),N,1); ones(nEMG,1)];
 
 % Bounds
-options.lb = [repmat([zeros(M,1); -1500000*ones(nDof,1)],N,1); zeros(nEMG,1)];
-options.ub = [repmat([ones(M,1); 1500000*ones(nDof,1)],N,1); ones(nEMG,1)*MaxScale];
-options.cl = [repmat(zeros(nDof,1),N,1); repmat(ones(nEMG,1)*BoundMin,N,1)];
-options.cu = [repmat(zeros(nDof,1),N,1); repmat(ones(nEMG,1)*BoundMax,N,1)];
+options.lb = [repmat([zeros(M,1); -1500*ones(nDof,1)],N,1); zeros(nEMG,1)];
+options.ub = [repmat([ones(M,1); 1500*ones(nDof,1)],N,1); ones(nEMG,1)*MaxScale];
+
+if bool_scaleBounds == 1
+    BoundMin = BoundMin .* SoBound;
+    BoundMax = BoundMax .* SoBound;     
+    
+    BoundEMG_min = zeros(N*nEMG,1);
+    BoundEMG_max = zeros(N*nEMG,1);
+    for i=1:nEMG
+        BoundEMG_min((i-1)*N+1:i*N) = BoundMin(i).*ones(N,1);
+        BoundEMG_max((i-1)*N+1:i*N) = BoundMax(i).*ones(N,1);
+    end
+else
+    BoundEMG_min = repmat(ones(nEMG,1).*BoundMin,N,1);
+    BoundEMG_max = repmat(ones(nEMG,1).*BoundMax,N,1);
+end
+
+
+
+options.cl = [repmat(zeros(nDof,1),N,1); BoundEMG_min];
+options.cu = [repmat(zeros(nDof,1),N,1); BoundEMG_max];
+
 
 % Auxiliary data.
 options.auxdata = { M N nDof reshape(Fact', I, 1)  reshape(Fpas', I, 1) ...
@@ -105,14 +133,16 @@ DatStore.SoForce = SoForce;
 DatStore.cos_alpha = cos_alpha;
 DatStore.EMGscale  = EMGscale;
 
-figure();
-for i=1:length(EMGindices)
-    subplot(4,ceil(length(EMGindices)./4),i)
-    plot(act(:,EMGindices(i))); hold on;
-    plot(actEMG(:,i).*repmat(EMGscale(i)',length(actEMG),1),'--k');
-    title(DatStore.EMGselection{i});
+if isfield(Misc,'PlotBool') && Misc.PlotBool == 1
+    figure();
+    for i=1:length(EMGindices)
+        subplot(4,ceil(length(EMGindices)./4),i)
+        plot(act(:,EMGindices(i))); hold on;
+        plot(actEMG(:,i).*repmat(EMGscale(i)',length(actEMG),1),'--k');
+        title(DatStore.EMGselection{i});
+    end
+    suptitle('Results EMG constrained static optimization');
 end
-suptitle('Results EMG constrained static optimization');
 % ------------------------------------------------------------------
 function f = objective_SO (x, auxdata)
 [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, ] = deal(auxdata{:});

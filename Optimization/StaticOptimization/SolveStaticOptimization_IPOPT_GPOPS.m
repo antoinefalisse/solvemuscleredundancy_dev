@@ -39,7 +39,7 @@ Fpas = FMo.*Fpe.*cos_alpha;
 Fact = FMo.*FMltilde.*FMvtilde.*cos_alpha;
 
 % Add optimal force for reserve torques
-Topt = 150/sqrt(1000);
+Topt = 1;%150/sqrt(1000);
 Fpas = [Fpas zeros(N,nDof)];
 Fact = [Fact Topt*ones(N,nDof)];
 

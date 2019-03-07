@@ -1,5 +1,5 @@
 %% Example solve muscle redundancy with an MRI model
-clear all; close all; clc;
+clear all; clc;
 % Install instructions:
 %   Add the main path ...\solvemuscleredundancy_dev to your matlab folder,
 %   using the following command (in my case)
@@ -11,7 +11,7 @@ addpath(genpath(MainPath));
 Datapath =fullfile(MainPath,'Examples','EMG_constraintMRI');
 IK_path = fullfile(Datapath,'gait1_kinematics.mot');      % point to the IK file
 ID_path = fullfile(Datapath,'inverse_dynamics.sto');      % point to the ID file
-model_path = fullfile(Datapath,'SEMLS_2_gen_final.osim');         % point to the model
+model_path = fullfile(Datapath,'SEMLS_2_gen_final_2392_Fmax.osim');         % point to the model
 Out_path=fullfile(MainPath,'Results_MRI');                    % folder to store results
 
 % Example for Hans: Note if you want to analyse all the data in the IK file
@@ -21,7 +21,7 @@ time = [IK.data(1,1) IK.data(end,1)];
 % settings
 % Misc.DofNames_Input={'ankle_flex_r','knee_flex_r'};    % select the DOFs you want to include in the optimization
 Misc.DofNames_Input={'ankle_flex_r','knee_flex_r','hip_flex_r','hip_add_r','hip_rot_r'};    % select the DOFs you want to include in the optimization
-Misc.RunAnalysis = 0;   % boolean to select if you want to run the muscle analysis
+Misc.RunAnalysis = 1;   % boolean to select if you want to run the muscle analysis
 Misc.Par_Elastic = 0;   % boolean to select if you want a parallel elastic element in your model
 Misc.FL_Relation = 1;   % boolean to select if you want a account for force-length and force-velocity properties
 
@@ -39,7 +39,7 @@ Misc.EMGconstr = 1;     % Boolean to select EMG constrained option
 Misc.EMGfile = fullfile(Datapath,'gait1_EMG.mot');
 Misc.EMGbounds = [-0.1 0.1];    % upper and lower bound for deviation simulated and measured muscle activity
 Misc.MaxScale    = 10;  % maximal value to scale EMG 
-% Provide the correct headers in the the case you EMG file has not the same
+% Provide the correct headers int case you EMG file has not the same
 % headers as the muscle names in OpenSim (leave empty when you don't want
 % to use this)
 Misc.EMGheaders = {'time','rectus_fem_l', 'vas_lat_l', 'bi_fem_lh_l', 'semiten_l', 'tib_ant_l', 'gas_med_l', 'soleus_l', 'glut_med2_l',...
@@ -53,13 +53,29 @@ Misc.EMGSelection = {'rectus_fem_r', 'vas_lat_r', 'bi_fem_lh_r', 'semiten_r', 't
 % and should always be in the header of the EMGfile or in the  EMGheaders.
 Misc.EMG_MuscleCopies = {'gas_med_r','gas_lat_r'};       %  use gastrocnemius medialis EMG to constrain activity of the lateral gastrocn
 
+% select if you want to process the EMG through our favorite low-pass filter (i.e. activation dynamics).
+% The resulting activations (from EMG) will be used to constrain the simulation
+Misc.ActDynEMG = 1;
 
+% Use this weird implementation with adapting to bounds based on activity
+% of a static optimization without constraints
+Misc.BoundsScale_EMG = 1;
+
+% Plotter Bool: Boolean to select if you want to plot lots of output information of intermediate steps in the script
+Misc.PlotBool = 1;
+
+
+% filename = '';
+% 
+% if isfolder(filename)
+%     
+% end
 % Function to solve the muscle redundancy problem - constraints on
 % activations
 % [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
 %     SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,Out_path,Misc);
 
-% other formalation is needed when you want to constrain muscle excitations
+%other formalation is needed when you want to constrain muscle excitations
 % [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
 %     SolveMuscleRedundancy_FtildeState_GPOPS(model_path,IK_path,ID_path,time,Out_path,Misc);
 
@@ -113,7 +129,9 @@ Misc.EMG_MuscleCopies = {'gas_med_r','gas_lat_r'};       %  use gastrocnemius me
 figure(); 
 subplot(1,2,1);
 plot(DatStore.time,DatStore.SoAct);
+% legend(DatStore.MuscleNames);
 subplot(1,2,2)
 plot(DatStore.time,DatStore.SoRAct);
-legend(Misc.DofNames_Input);
+% legend(Misc.DofNames_Input);
+
 
