@@ -31,3 +31,38 @@ Found 115 state vectors with time stamps ranging from 3.32 to 4.46.
 Executing the analyses from 3.32 to 4.46...
 Printing results of investigation gait1_kinematics to C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Results_MRI\MuscleAnalysis.
 Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+AbstractTool gait1_kinematics loading model 'C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim'
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot.
+Storage: file=C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot (nr=115 nc=32)
+Found 115 state vectors with time stamps ranging from 3.32 to 4.46.
+Executing the analyses from 3.32 to 4.46...
+MuscleAnalysis: WARNING - coordinate toe_angle_r is locked and can't be varied.
+MuscleAnalysis: WARNING - coordinate toe_angle_l is locked and can't be varied.
+Printing results of investigation gait1_kinematics to C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Results_MRI\MuscleAnalysis.
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+AbstractTool gait1_kinematics loading model 'C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim'
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot.
+Storage: file=C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot (nr=115 nc=32)
+Found 115 state vectors with time stamps ranging from 3.32 to 4.46.
+Executing the analyses from 3.32 to 4.46...
+Printing results of investigation gait1_kinematics to C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Results_MRI\MuscleAnalysis.
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+AbstractTool gait1_kinematics loading model 'C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim'
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim
+No external loads will be applied (external loads file not specified).
+
+Loading coordinates from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot.
+Storage: file=C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\gait1_kinematics.mot (nr=115 nc=32)
+Found 115 state vectors with time stamps ranging from 3.32 to 4.46.
+Executing the analyses from 3.32 to 4.46...
+Printing results of investigation gait1_kinematics to C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Results_MRI\MuscleAnalysis.
+Loaded model SEMLS_2_Gen from file C:\Users\u0088756\Documents\PostDoc\Software\Original\solvemuscleredundancy_dev\Examples\EMG_constraintMRI\SEMLS_2_gen_final.osim

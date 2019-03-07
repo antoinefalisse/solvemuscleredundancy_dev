@@ -163,9 +163,6 @@ if isfield(Misc,'Set_ATendon_ByName') && ~isempty(Misc.Set_ATendon_ByName)
    [Misc,DatStore] = set_ATendon_ByName(Misc,DatStore);
 end
 
-% ----------------------------------------------------------------------- %
-% Solve the muscle redundancy problem using static optimization --------- %
-
 % add input Info
 DatStore.Par_Elastic = 1;
 DatStore.FL_Relation = 1;
@@ -176,6 +173,8 @@ if isfield(Misc,'FL_Relation')
     DatStore.FL_Relation = Misc.FL_Relation;
 end
 
+% ----------------------------------------------------------------------- %
+% Solve the muscle redundancy problem using static optimization --------- %
 % The solution of the static optimization is used as initial guess for the
 % dynamic optimization
 % Extract the muscle-tendon properties
@@ -304,26 +303,20 @@ guess.phase.integral = 0;
 
 % update the constraints, guess and design variables when using EMG
 % constraints
-if Misc.EMGconstr 
-    
+if Misc.EMGconstr     
     % update constraint
     BoundsLower = ones(1,DatStore.nEMG).*min(DatStore.EMGbounds);
     BoundsUpper = ones(1,DatStore.nEMG).*max(DatStore.EMGbounds);
     bounds.phase.path.lower = [bounds.phase.path.lower BoundsLower];
-    bounds.phase.path.upper = [bounds.phase.path.upper BoundsUpper];
-    
+    bounds.phase.path.upper = [bounds.phase.path.upper BoundsUpper];    
     % add design variables
     bounds.parameter.lower=zeros(1,DatStore.nEMG);
-    bounds.parameter.upper=zeros(1,DatStore.nEMG)+ DatStore.MaxScale;
-    
+    bounds.parameter.upper=zeros(1,DatStore.nEMG)+ DatStore.MaxScale;    
     % update initial guess
-    guess.parameter = DatStore.EMGscale';        % use the scale output from SO
-    
+    guess.parameter = DatStore.EMGscale';        % use the scale output from SO    
     % create a spline for the EMG information
     auxdata.EMGspline = spline(DatStore.time',DatStore.actEMGintSO');
 end
-
-
 
 % Spline structures
 for dof = 1:auxdata.Ndof

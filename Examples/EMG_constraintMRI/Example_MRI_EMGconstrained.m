@@ -58,46 +58,22 @@ Misc.EMG_MuscleCopies = {
     'gas_med_r','gas_lat_r'};       %  use gastrocnemius medialis EMG to constrain activity of the lateral gastrocn
 
 
-% Function to solve the muscle redundancy problem
+% Function to solve the muscle redundancy problem - constraints on
+% activations
+% [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
+%     SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,Out_path,Misc);
+
+% other formalation is needed when you want to constrain muscle excitations
 [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=...
-    SolveMuscleRedundancy_FtildeState_actdyn_GPOPS(model_path,IK_path,ID_path,time,Out_path,Misc);
+    SolveMuscleRedundancy_FtildeState_GPOPS(model_path,IK_path,ID_path,time,Out_path,Misc);
 
 
 %% Example to work with output
-mNames = DatStore.MuscleNames;
-iSoleus = find(strcmp(mNames,'soleus_r'));
-igas1 = find(strcmp(mNames,'gas_lat_r'));
-igas2 = find(strcmp(mNames,'gas_med_r'));
-im = [iSoleus igas1 igas2];
 
-% compare solution dynamic adn static optimization
-figure();
-plot(Time,MActivation(:,im)); hold on;         % Dynamic optimization (i.e. Full hill type model)
-plot(DatStore.time,DatStore.SoAct(:,im),'--k');      % Static opt (i.e. rigid tendon)
-legend('DynamicOpt','StaticOpt');
-
-% show the ID moments
-figure();
-plot(DatStore.time,DatStore.T_exp);
-legend(Misc.DofNames_Input);
-
-% the reserve actuator in static optimization
-figure();
-plot(Time,RActivation); hold on;         % Dynamic optimization (i.e. Full hill type model)
-plot(DatStore.time,DatStore.SoRAct,'--k');
-legend(Misc.DofNames_Input);
-
-% plot norm. muscle length
-figure();plot(Time,lMtilde(:,[iSoleus igas1 igas2]));
-legend('soleus','gas_lat','gas_med');
-
-% Evaluate EMG constraint
-
+% Plot tracking of EMG signals
 EMG = DatStore.actEMGintSO; 
 scale = DatStore.DynOpt_EMGscale;
 EMGinds = DatStore.EMGindices;
-
-
 
 figure();
 for i=1:length(EMGinds)
@@ -112,6 +88,24 @@ for i=1:length(EMGinds)
     set(gca,'YLim',[0 1]);
 end
 suptitle('Results EMG constrained static optimization');
+
+% the reserve actuator in bothc simulations
+figure();
+plot(Time,RActivation); hold on;            % Dynamic optimization (i.e. Full hill type model)
+plot(DatStore.time,DatStore.SoRAct,'--k');  % Static optimization
+legend(Misc.DofNames_Input);
+
+% plot norm. muscle length of the calf muscles
+mNames = DatStore.MuscleNames;
+iSoleus = find(strcmp(mNames,'soleus_r'));
+igas1 = find(strcmp(mNames,'gas_lat_r'));
+igas2 = find(strcmp(mNames,'gas_med_r'));
+im = [iSoleus igas1 igas2];
+figure();
+plot(Time,lMtilde(:,[iSoleus igas1 igas2]));
+legend('soleus','gas_lat','gas_med');
+
+
 
 
 
