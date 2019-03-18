@@ -1,16 +1,8 @@
-function DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore,Misc)
+function DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG_ActBound(DatStore,Misc)
 
 % STEP 1. Inputs
 % --------------
 
-
-bool_scaleBounds = 0;
-if isfield(Misc,'BoundsScale_EMG') && Misc.BoundsScale_EMG == 1
-    DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore);
-    MaxAct = max(DatStore.SoAct);
-    SoBound = MaxAct(DatStore.EMGindices);
-    bool_scaleBounds = 1;
-end
 
 time  = DatStore.time;
 N     = length(time);
@@ -66,8 +58,6 @@ end
 
 % EMG information
 MaxScale    = DatStore.MaxScale;
-BoundMin    = min(DatStore.EMGbounds);
-BoundMax    = max(DatStore.EMGbounds);
 nEMG        = DatStore.nEMG;        % update this based on input information
 EMGindices  = DatStore.EMGindices;
 actEMG      = DatStore.actEMGintSO;
@@ -79,28 +69,18 @@ x0 = [repmat(0.01*ones(M+nDof,1),N,1); ones(nEMG,1)];
 options.lb = [repmat([zeros(M,1); -1500*ones(nDof,1)],N,1); zeros(nEMG,1)];
 options.ub = [repmat([ones(M,1); 1500*ones(nDof,1)],N,1);   ones(nEMG,1)*MaxScale];
 
-if bool_scaleBounds == 1
-    BoundMin = BoundMin .* SoBound;
-    BoundMax = BoundMax .* SoBound;     
-    
-    BoundEMG_min = zeros(N*nEMG,1);
-    BoundEMG_max = zeros(N*nEMG,1);
-    for i=1:nEMG
-        BoundEMG_min((i-1)*N+1:i*N) = BoundMin(i).*ones(N,1);
-        BoundEMG_max((i-1)*N+1:i*N) = BoundMax(i).*ones(N,1);
-    end
-else
-    BoundEMG_min = repmat(ones(nEMG,1).*BoundMin,N,1);
-    BoundEMG_max = repmat(ones(nEMG,1).*BoundMax,N,1);
-end
+% EMG bounds:
+% 0 < a(t) (1-bmin) -sEMG(t)     (with bmin a negative number representing the the pre-defined bound)
+% 0 > a(t) (1-bmax)  -sEMG(t)    (with bmax a positive number representing the the pre-defined bound)
 
-options.cl = [repmat(zeros(nDof,1),N,1); BoundEMG_min];
-options.cu = [repmat(zeros(nDof,1),N,1); BoundEMG_max];
+options.cl = [repmat(zeros(nDof,1),N,1); zeros(nEMG*N,1) ;  ones(nEMG*N,1)*-999   ];    
+options.cu = [repmat(zeros(nDof,1),N,1); ones(nEMG*N,1)*999   ; zeros(nEMG*N,1) ];     
 
 
 % Auxiliary data.
+b = DatStore.EMGbounds;
 options.auxdata = { M N nDof reshape(Fact', I, 1)  reshape(Fpas', I, 1) ...
-    ID_data MomentArms nEMG EMGindices actEMG};
+    ID_data MomentArms nEMG EMGindices actEMG,b};
 options.ipopt.mu_strategy      = 'adaptive';
 options.ipopt.max_iter         = 2000;
 options.ipopt.tol              = 1e-8;
@@ -139,12 +119,12 @@ if isfield(Misc,'PlotBool') && Misc.PlotBool == 1
 end
 % ------------------------------------------------------------------
 function f = objective_SO (x, auxdata)
-[M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, ] = deal(auxdata{:});
+[M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, b] = deal(auxdata{:});
   f     = 0.5 * sum(x(1:end-nEMG).^2);
   
 % ------------------------------------------------------------------
 function c = constraints_SO (x, auxdata)
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG] = deal(auxdata{:});
+  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, b] = deal(auxdata{:});
   
   F = Fmax .* x(1:end-nEMG) + Fpas;
   
@@ -158,44 +138,29 @@ function c = constraints_SO (x, auxdata)
   
   act = reshape(x(1:end-nEMG), M+nDof, N)';
   s = x(end-nEMG + 1:end);
+  %for m = 1:nEMG
+  %   c(nDof*N + (m-1)*N + 1:nDof*N + m*N) = act(:,EMGindices(m)) - s(m) * actEMG(:,m); 
+  %end
+
+  bmin = b(1);
+  bmax = b(2);
   for m = 1:nEMG
-     c(nDof*N + (m-1)*N + 1:nDof*N + m*N) = act(:,EMGindices(m)) - s(m) * actEMG(:,m); 
+      c(nDof*N + (m-1)*N + 1 : nDof*N + m*N)                    = (act(:,m) .* (1-bmin)) - s(m) * actEMG(:,m);
+      c(nDof*N + nEMG*N + (m-1)*N + 1 : nDof*N + nEMG*N + m*N)  = (act(:,m) .* (1-bmax)) - s(m) * actEMG(:,m);
   end
   
 
 % ------------------------------------------------------------------
 function g = gradient_SO (x, auxdata)
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG] = deal(auxdata{:});
+  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, b] = deal(auxdata{:});
   g = [x(1:end - nEMG); zeros(nEMG,1)];
 
 % ------------------------------------------------------------------
 function J = jacobianstructure_SO (auxdata)  
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG] = deal(auxdata{:});
+  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, b] = deal(auxdata{:});
   
   nA = M + nDof; % number of actuators
-  J = zeros(nDof*N + nEMG*N,(nA)*N +nEMG );
-  for i = 1:N
-      for k = 1:nDof
-          J(k+(i-1)*nDof,nA*(i-1)+1:nA*i) = MomentArm((i-1)*nA+1:i*nA,k)';
-      end
-  end
-  
-   for m = 1:nEMG
-      for i = 1:N
-          J(nDof*N + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1;
-          J(nDof*N + (m-1)*N + i, (M+nDof)*N + m) = - actEMG(i,m);
-      end
-   end
-  
-  
-  J = sparse(J);
-    
-% ------------------------------------------------------------------
-function J = jacobian_SO (x, auxdata)  
-  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG] = deal(auxdata{:});
-  
-  nA = M + nDof; % number of actuators
-  J = zeros(nDof*N + nEMG*N,(nA)*N +nEMG );
+  J = zeros(nDof*N + nEMG*N*2,(nA)*N +nEMG );
   for i = 1:N
       for k = 1:nDof
           J(k+(i-1)*nDof,nA*(i-1)+1:nA*i) = ...
@@ -203,10 +168,41 @@ function J = jacobian_SO (x, auxdata)
       end
   end
   
+  bmin = b(1);
+  bmax = b(2);
   for m = 1:nEMG
       for i = 1:N
-          J(nDof*N + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1;
+          J(nDof*N + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1 - bmin;
           J(nDof*N + (m-1)*N + i, (M+nDof)*N + m) = - actEMG(i,m);
+          J(nDof*N + N*nEMG + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1 - bmax;
+          J(nDof*N + N*nEMG + (m-1)*N + i, (M+nDof)*N + m) = - actEMG(i,m);
+      end
+  end
+  
+  
+  J = sparse(J);
+    
+% ------------------------------------------------------------------
+function J = jacobian_SO (x, auxdata)  
+  [M, N, nDof, Fmax, Fpas, ID_data, MomentArm, nEMG, EMGindices, actEMG, b] = deal(auxdata{:});
+  
+  nA = M + nDof; % number of actuators
+  J = zeros(nDof*N + nEMG*N*2,(nA)*N +nEMG );
+  for i = 1:N
+      for k = 1:nDof
+          J(k+(i-1)*nDof,nA*(i-1)+1:nA*i) = ...
+              Fmax((i-1)*nA+1:i*nA)'.*MomentArm((i-1)*nA+1:i*nA,k)';
+      end
+  end
+  
+  bmin = b(1);
+  bmax = b(2);
+  for m = 1:nEMG
+      for i = 1:N
+         J(nDof*N + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1 - bmin;
+          J(nDof*N + (m-1)*N + i, (M+nDof)*N + m) = - actEMG(i,m);
+          J(nDof*N + N*nEMG + (m-1)*N + i, (M+nDof)*(i-1) + EMGindices(m)) = 1 - bmax;
+          J(nDof*N + N*nEMG + (m-1)*N + i, (M+nDof)*N + m) = - actEMG(i,m);
       end
   end
   

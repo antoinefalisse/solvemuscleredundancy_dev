@@ -189,9 +189,15 @@ end
 
 % static optimization (with or without EMG constaints
 if isfield(Misc,'EMGconstr') && Misc.EMGconstr == 1
-    [DatStore] = GetEMGInfo(Misc,DatStore);        
-    disp('Static Optimization running');
-    DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore,Misc);
+    if isfield(Misc,'ActBound') && Misc.ActBound == 1
+        [DatStore] = GetEMGInfo(Misc,DatStore); 
+        disp('EMG constrained Static Optimization running with activation dependent bounds ');
+        DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG_ActBound(DatStore,Misc);
+    else
+        [DatStore] = GetEMGInfo(Misc,DatStore);        
+        disp('Static Optimization running');
+        DatStore = SolveStaticOptimization_IPOPT_GPOPS_EMG(DatStore,Misc);
+    end
 else
     DatStore = SolveStaticOptimization_IPOPT_GPOPS(DatStore);
 end

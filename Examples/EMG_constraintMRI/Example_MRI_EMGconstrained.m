@@ -19,9 +19,9 @@ IK = importdata(IK_path);
 time = [IK.data(1,1) IK.data(end,1)];
 
 % settings
-% Misc.DofNames_Input={'ankle_flex_r','knee_flex_r'};    % select the DOFs you want to include in the optimization
-Misc.DofNames_Input={'ankle_flex_r','knee_flex_r','hip_flex_r','hip_add_r','hip_rot_r'};    % select the DOFs you want to include in the optimization
-Misc.RunAnalysis = 1;   % boolean to select if you want to run the muscle analysis
+Misc.DofNames_Input={'ankle_flex_r','knee_flex_r'};    % select the DOFs you want to include in the optimization
+% Misc.DofNames_Input={'ankle_flex_r','knee_flex_r','hip_flex_r','hip_add_r','hip_rot_r'};    % select the DOFs you want to include in the optimization
+Misc.RunAnalysis = 0;   % boolean to select if you want to run the muscle analysis
 Misc.Par_Elastic = 0;   % boolean to select if you want a parallel elastic element in your model
 Misc.FL_Relation = 1;   % boolean to select if you want a account for force-length and force-velocity properties
 
@@ -37,11 +37,12 @@ Misc.Set_ATendon_ByName = {'gas_med_r',15;
 % information for the EMG constraint
 Misc.EMGconstr = 1;     % Boolean to select EMG constrained option
 Misc.EMGfile = fullfile(Datapath,'gait1_EMG.mot');
-Misc.EMGbounds = [-0.1 0.1];    % upper and lower bound for deviation simulated and measured muscle activity
+Misc.EMGbounds = [-0.3 0.3];    % upper and lower bound for deviation simulated and measured muscle activity
 Misc.MaxScale    = 10;  % maximal value to scale EMG 
 % Provide the correct headers int case you EMG file has not the same
 % headers as the muscle names in OpenSim (leave empty when you don't want
 % to use this)
+
 Misc.EMGheaders = {'time','rectus_fem_l', 'vas_lat_l', 'bi_fem_lh_l', 'semiten_l', 'tib_ant_l', 'gas_med_l', 'soleus_l', 'glut_med2_l',...
     'rectus_fem_r', 'vas_lat_r', 'bi_fem_lh_r', 'semiten_r', 'tib_ant_r', 'gas_med_r', 'soleus_r', 'glut_med2_r'}; 
 
@@ -53,13 +54,25 @@ Misc.EMGSelection = {'rectus_fem_r', 'vas_lat_r', 'bi_fem_lh_r', 'semiten_r', 't
 % and should always be in the header of the EMGfile or in the  EMGheaders.
 Misc.EMG_MuscleCopies = {'gas_med_r','gas_lat_r'};       %  use gastrocnemius medialis EMG to constrain activity of the lateral gastrocn
 
-% select if you want to process the EMG through our favorite low-pass filter (i.e. activation dynamics).
+% select if you want to process the EMG through activation dynamics
 % The resulting activations (from EMG) will be used to constrain the simulation
 Misc.ActDynEMG = 1;
 
 % Use this weird implementation with adapting to bounds based on activity
 % of a static optimization without constraints
 Misc.BoundsScale_EMG = 1;
+% or the implementation when the bounds depend on the current simulated
+% activity: Note currently not working
+
+% Idea: a(t) bmin < a(t) - s EMG(t) < a(t) bmax
+%   => we don't want to divide by zero. Hence implementation:
+%           (1) 0 < a(t) (1-bmin) - sEMG(t) 
+%           (2) a(t) (1-bmax) - sEMG(t) <0
+%   => implemented this in constraints and jacobian, but apparantly not
+%   solution possible. Ask Friedl about this.
+
+Misc.ActBound = 1;
+
 
 % Plotter Bool: Boolean to select if you want to plot lots of output information of intermediate steps in the script
 Misc.PlotBool = 1;

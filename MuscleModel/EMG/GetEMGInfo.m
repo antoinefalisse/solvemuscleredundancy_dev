@@ -40,9 +40,12 @@ if isfield(Misc,'ActDynEMG') && Misc.ActDynEMG == 1
                 legend('EMG','actEMG');
                 title(EMGheaders{i});
             end
-        end
+        end        
     end    
     EMGdat = actEMG;    
+end
+if isfield(Misc,'PlotBool') && Misc.PlotBool ==1
+    suptitle('Activation dynamics');
 end
 
 
