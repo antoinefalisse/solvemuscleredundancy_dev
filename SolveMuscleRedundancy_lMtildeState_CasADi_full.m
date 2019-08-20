@@ -438,19 +438,7 @@ lbg = [lbg; zeros(2*auxdata.NMuscles,1)];
 ubg = [ubg; zeros(2*auxdata.NMuscles,1)];     
 end
 
-% Create an NLP solver
-prob = struct('f', J, 'x', vertcat(w{:}), 'g', vertcat(g{:}));
-options.ipopt.max_iter = 10000;
-options.ipopt.tol = 1e-6;
-solver = nlpsol('solver', 'ipopt',prob,options);
-% Create and save diary
-diary('DynamicOptimization_lMtildeState_CasADi.txt'); 
-sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw,...
-    'lbg', lbg, 'ubg', ubg);    
-diary off
-w_opt = full(sol.x);
-g_opt = full(sol.g);  
-% Save results
+% Create an NLP solver and set options
 output.setup.bounds = bounds;
 output.setup.auxdata = auxdata;
 output.setup.guess = guess;
@@ -458,9 +446,33 @@ output.setup.lbw = lbw;
 output.setup.ubw = ubw;
 output.setup.nlp.solver = 'ipopt';
 output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
+% Set derivativelevel to 'first' for approximating the Hessian
 output.setup.derivatives.derivativelevel = 'second';
-output.setup.nlp.ipoptoptions.tolerance = options.ipopt.tol;
-output.setup.nlp.ipoptoptions.maxiterations = options.ipopt.max_iter;
+output.setup.nlp.ipoptoptions.tolerance = 1e-6;
+output.setup.nlp.ipoptoptions.maxiterations = 10000;
+if strcmp(output.setup.derivatives.derivativelevel, 'first')
+    options.ipopt.hessian_approximation = 'limited-memory';    
+end
+% By default, the barrier parameter update strategy is monotone.
+% https://www.coin-or.org/Ipopt/documentation/node46.html#SECTION000116020000000000000
+% Uncomment the following line to use an adaptive strategy
+% optionssol.ipopt.mu_strategy = 'adaptive';
+options.ipopt.nlp_scaling_method = 'gradient-based';
+options.ipopt.linear_solver = output.setup.nlp.ipoptoptions.linear_solver;
+options.ipopt.tol = output.setup.nlp.ipoptoptions.tolerance;
+options.ipopt.max_iter = output.setup.nlp.ipoptoptions.maxiterations;
+prob = struct('f', J, 'x', vertcat(w{:}), 'g', vertcat(g{:}));
+solver = nlpsol('solver', 'ipopt', prob, options);
+
+% Solve
+diary('DynamicOptimization_lMtildeState_CasADi.txt'); 
+sol = solver('x0', w0, 'lbx', lbw, 'ubx', ubw,...
+    'lbg', lbg, 'ubg', ubg);    
+diary off
+
+% Save results
+w_opt = full(sol.x);
+g_opt = full(sol.g); 
 output.solution.w_opt = w_opt;
 output.solution.g_opt = g_opt;
 

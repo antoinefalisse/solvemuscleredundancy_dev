@@ -14,7 +14,7 @@ for i=1:length(Misc.DofNames_Input)
     % read the Muscle Analysis Result
     MA_FileName=fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']);
     if exist(MA_FileName,'file')
-        dm_Data_temp=importdata(fullfile(Misc.MuscleAnalysisP29ath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']));
+        dm_Data_temp=importdata(fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_MomentArm_' Misc.DofNames_Input{i} '.sto']));
     else
         error(['Cannot open muscle analysis results for: ' Misc.DofNames_Input{i}])
     end

@@ -356,10 +356,17 @@ opti.minimize(J); % Define cost function in opti
 output.setup.auxdata = auxdata;
 output.setup.nlp.solver = 'ipopt';
 output.setup.nlp.ipoptoptions.linear_solver = 'mumps';
+% Set derivativelevel to 'first' for approximating the Hessian
 output.setup.derivatives.derivativelevel = 'second';
 output.setup.nlp.ipoptoptions.tolerance = 1e-6;
 output.setup.nlp.ipoptoptions.maxiterations = 10000;
-
+if strcmp(output.setup.derivatives.derivativelevel, 'first')
+    optionssol.ipopt.hessian_approximation = 'limited-memory';    
+end
+% By default, the barrier parameter update strategy is monotone.
+% https://www.coin-or.org/Ipopt/documentation/node46.html#SECTION000116020000000000000
+% Uncomment the following line to use an adaptive strategy
+% optionssol.ipopt.mu_strategy = 'adaptive';
 optionssol.ipopt.nlp_scaling_method = 'gradient-based';
 optionssol.ipopt.linear_solver = output.setup.nlp.ipoptoptions.linear_solver;
 optionssol.ipopt.tol = output.setup.nlp.ipoptoptions.tolerance;
