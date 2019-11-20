@@ -51,7 +51,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,dTForcetilde,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -234,22 +234,39 @@ for m = 1:auxdata.NMuscles
     auxdata.LMTSpline(m) = spline(DatStore.time,DatStore.LMT(:,m));
 end
 
-% Evaluate LMT, VMT, MA and ID at optimization mesh
-step = (tf-t0)/(N);
-time_opt = t0:step:tf;
-LMTinterp = zeros(length(time_opt),auxdata.NMuscles); % Muscle-tendon length
-VMTinterp = zeros(length(time_opt),auxdata.NMuscles); % Muscle-tendon velocity
-for m = 1:auxdata.NMuscles
-    [LMTinterp(:,m),VMTinterp(:,m),~] = SplineEval_ppuval(auxdata.LMTSpline(m),time_opt,1);
+% Grid
+% Mesh points
+tgrid = linspace(t0,tf,N+1);
+dtime = zeros(1,d+1);
+for i = 1:d+1
+    dtime(i)=tau_root(i)*((tf-t0)/N);
 end
-MAinterp = zeros(length(time_opt),auxdata.Ndof*auxdata.NMuscles); % Moment arm
-IDinterp = zeros(length(time_opt),auxdata.Ndof); % Inverse dynamic torque
+% Mesh points and collocation points
+tgrid_ext = zeros(1,(d+1)*N+1);
+for i = 1:N
+    tgrid_ext(((i-1)*(d+1)+1):1:i*(d+1)) = tgrid(i) + dtime;
+end
+tgrid_ext(end) = tf;
+% Collocation points
+tgrid_colloc = zeros(1,d*N);
+for i = 1:N
+    tgrid_colloc(((i-1)*(d)+1):1:i*(d)) = tgrid(i) + dtime(2:end);
+end
+
+% Evaluate LMT, VMT, MA and ID at collocation points
+LMTinterp = zeros(length(tgrid_colloc),auxdata.NMuscles); % Muscle-tendon length
+VMTinterp = zeros(length(tgrid_colloc),auxdata.NMuscles); % Muscle-tendon velocity
+for m = 1:auxdata.NMuscles
+    [LMTinterp(:,m),VMTinterp(:,m),~] = SplineEval_ppuval(auxdata.LMTSpline(m),tgrid_colloc,1);
+end
+MAinterp = zeros(length(tgrid_colloc),auxdata.Ndof*auxdata.NMuscles); % Moment arm
+IDinterp = zeros(length(tgrid_colloc),auxdata.Ndof); % Inverse dynamic torque
 for dof = 1:auxdata.Ndof
     for m = 1:auxdata.NMuscles
         index_sel=(dof-1)*(auxdata.NMuscles)+m;
-        MAinterp(:,index_sel) = ppval(auxdata.JointMASpline(dof).Muscle(m),time_opt);
+        MAinterp(:,index_sel) = ppval(auxdata.JointMASpline(dof).Muscle(m),tgrid_colloc);
     end
-    IDinterp(:,dof) = ppval(auxdata.JointIDSpline(dof),time_opt);
+    IDinterp(:,dof) = ppval(auxdata.JointIDSpline(dof),tgrid_colloc);
 end
 
 % Variables - bounds and initial guess
@@ -276,10 +293,12 @@ opti.subject_to(vA_min/tdeact < vA < vA_max/tact);
 % Reserve actuators
 aT = opti.variable(auxdata.Ndof,N);
 opti.subject_to(-1 < aT <1);
+
+% Slack controls
 % Time derivative of muscle-tendon forces (states)
-dFTtilde = opti.variable(auxdata.NMuscles,N);
-opti.subject_to(dF_min < dFTtilde < dF_max);
-opti.set_initial(dFTtilde,0.01);
+dFTtildemesh = opti.variable(auxdata.NMuscles,d*N);
+opti.subject_to(dF_min < dFTtildemesh < dF_max);
+opti.set_initial(dFTtildemesh,0.01);
 
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
@@ -287,7 +306,12 @@ for k=1:N
     % Variables within current mesh interval
     ak = a(:,k); FTtildek = FTtilde(:,k);
     ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
-    dFTtildek = dFTtilde(:,k); aTk = aT(:,k); vAk = vA(:,k);
+    dFTtildek_colloc = dFTtildemesh(:,(k-1)*d+1:k*d); 
+    aTk = aT(:,k); vAk = vA(:,k);
+    LMTinterpk = LMTinterp((k-1)*d+1:k*d,:);
+    VMTinterpk = VMTinterp((k-1)*d+1:k*d,:);
+    IDinterpk = IDinterp((k-1)*d+1:k*d,:);
+    MAinterpk = MAinterp((k-1)*d+1:k*d,:);
     
     % Loop over collocation points
     for j=1:d
@@ -299,38 +323,41 @@ for k=1:N
         % Activation dynamics (explicit formulation)
         opti.subject_to(h*vAk.*auxdata.scaling.vA - ap == 0);
         % Contraction dynamics (implicit formulation)
-        opti.subject_to(h*dFTtildek.*auxdata.scaling.dFTtilde - FTtildep == 0)
+        opti.subject_to(h*dFTtildek_colloc(:,j).*auxdata.scaling.dFTtilde - FTtildep == 0)
         % Add contribution to the quadrature function
         J = J + ...
             B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...
             auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ...
             auxdata.w2*B(j+1)*f_ssNMuscles(vAk')*h + ...
-            auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek)*h;
+            auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek_colloc(:,j))*h;
+        
+        % Get muscle-tendon forces and derive Hill-equilibrium
+        [Hilldiffkj,FTkj] = f_forceEquilibrium_FtildeState(ak_colloc(:,j+1)',...
+            FTtildek_colloc(:,j+1)',dFTtildek_colloc(:,j)'.*auxdata.scaling.dFTtilde,...
+            LMTinterpk(j,:),VMTinterpk(j,:));
+        
+        % Add path constraints
+        % Hill-equilibrium constraint
+        opti.subject_to(Hilldiffkj == 0);
+        
+        % Moment constraints
+        for dof = 1:auxdata.Ndof
+            T_exp = IDinterpk(j,dof);
+            index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
+            T_sim = f_spNMuscles(MAinterpk(j,index_sel),FTkj) + auxdata.Topt*aTk(dof);
+            opti.subject_to(T_exp-T_sim == 0)
+        end
+        
+        % Activation dynamics constraints
+        act1 = vAk*auxdata.scaling.vA + ak_colloc(:,j+1)/tdeact;
+        opti.subject_to(act1 >= 0);
+        act2 = vAk*auxdata.scaling.vA + ak_colloc(:,j+1)/tact;
+        opti.subject_to(act2 <= 1/tact);    
     end
+    
     % State continuity at mesh transition
     opti.subject_to(a(:,k+1)== ak_colloc*D);
-    opti.subject_to(FTtilde(:,k+1) == FTtildek_colloc*D);
-    
-    % Get muscle-tendon forces and derive Hill-equilibrium
-    [Hilldiffk,FTk] = f_forceEquilibrium_FtildeState(ak',FTtildek',dFTtildek'.*auxdata.scaling.dFTtilde,LMTinterp(k,:)',VMTinterp(k,:)');
-    
-    % Add path constraints
-    % Moment constraints
-    for dof = 1:auxdata.Ndof
-        T_exp = IDinterp(k,dof);
-        index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
-        T_sim = f_spNMuscles(MAinterp(k,index_sel),FTk) + auxdata.Topt*aTk(dof);
-        opti.subject_to(T_exp-T_sim == 0)
-    end
-    
-    % Hill-equilibrium constraint
-    opti.subject_to(Hilldiffk == 0);
-    
-    % Activation dynamics constraints
-    act1 = vAk*auxdata.scaling.vA + ak/tdeact;
-    opti.subject_to(act1 >= 0);
-    act2 = vAk*auxdata.scaling.vA + ak/tact;
-    opti.subject_to(act2 <= 1/tact);
+    opti.subject_to(FTtilde(:,k+1) == FTtildek_colloc*D);    
 end
 
 opti.minimize(J); % Define cost function in opti
@@ -358,7 +385,7 @@ optionssol.ipopt.max_iter = output.setup.nlp.ipoptoptions.maxiterations;
 opti.solver(output.setup.nlp.solver,optionssol);
 
 % Solve
-diary('DynamicOptimization_FtildeState_actdyn_CasADi_IPOPTinfo.txt');
+diary('DynamicOptimization_FtildeState_actdyn_CasADi_col_IPOPTinfo.txt');
 sol = opti.solve();
 diary off
 
@@ -374,7 +401,7 @@ vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-% dFTtilde_opt = sol.value(dFTtilde)';
+dFTtildemesh_opt = sol.value(dFTtildemesh)';
 
 % Variables at collocation points
 % Muscle activations
@@ -384,7 +411,7 @@ a_opt_ext(2:(d+1):end,:) = amesh_opt(1:d:end,:);
 a_opt_ext(3:(d+1):end,:) = amesh_opt(2:d:end,:);
 a_opt_ext(4:(d+1):end,:) = amesh_opt(3:d:end,:);
 
-% % Muscle-tendon forces
+% Muscle-tendon forces
 FTtilde_opt_ext = zeros(N*(d+1)+1,auxdata.NMuscles);
 FTtilde_opt_ext(1:(d+1):end,:) = FTtilde_opt;
 FTtilde_opt_ext(2:(d+1):end,:) = FTtildemesh_opt(1:d:end,:);
@@ -396,23 +423,10 @@ tact = 0.015;
 tdeact = 0.06;
 e_opt = computeExcitationRaasch(a_opt(1:end-1,:),vA_opt_unsc,ones(1,auxdata.NMuscles)*tdeact,ones(1,auxdata.NMuscles)*tact);
 
-% Grid
-% Mesh points
-tgrid = linspace(t0,tf,N+1);
-dtime = zeros(1,d+1);
-for i = 1:d+1
-    dtime(i)=tau_root(i)*((tf-t0)/N);
-end
-% Mesh points and collocation points
-tgrid_ext = zeros(1,(d+1)*N+1);
-for i = 1:N
-    tgrid_ext(((i-1)*(d+1)+1):1:i*(d+1)) = tgrid(i) + dtime;
-end
-tgrid_ext(end) = tf;
-
 % Save results
 Time.meshPoints = tgrid;
 Time.collocationPoints = tgrid_ext;
+Time.collocationPointsOnly = tgrid_colloc;
 MActivation.meshPoints = a_opt;
 MActivation.collocationPoints = a_opt_ext;
 TForcetilde.meshPoints = FTtilde_opt;
@@ -421,10 +435,15 @@ TForce.meshPoints = FTtilde_opt.*repmat(DatStore.Fiso,length(Time.meshPoints),1)
 TForce.collocationPoints = FTtilde_opt_ext.*repmat(DatStore.Fiso,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
 RActivation.meshPoints = aT_opt*auxdata.Topt;
+dTForcetilde.collocationPointsOnly = dFTtildemesh_opt;
 MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
 % Muscle fiber lengths from Ftilde
-lMTinterp.meshPoints = LMTinterp;
+% Evaluate LMT, VMT, MA and ID at collocation points
+lMTinterp.meshPoints = zeros(length(tgrid),auxdata.NMuscles); % Muscle-tendon length
+for m = 1:auxdata.NMuscles
+    [lMTinterp.meshPoints(:,m),~,~] = SplineEval_ppuval(auxdata.LMTSpline(m),tgrid,1);
+end
 [lM.meshPoints,lMtilde.meshPoints] = FiberLength_Ftilde(TForcetilde.meshPoints,auxdata.params,lMTinterp.meshPoints,auxdata.Atendon,auxdata.shift);
 lMTinterp.collocationPoints = interp1(DatStore.time,DatStore.LMT,Time.collocationPoints);
 [lM.collocationPoints,lMtilde.collocationPoints] = FiberLength_Ftilde(TForcetilde.collocationPoints,auxdata.params,lMTinterp.collocationPoints,auxdata.Atendon,auxdata.shift);

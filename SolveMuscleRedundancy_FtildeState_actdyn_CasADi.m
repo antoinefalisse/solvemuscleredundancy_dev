@@ -51,7 +51,7 @@
 % ----------------------------------------------------------------------- %
 %%
 
-function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
+function [Time,MExcitation,MActivation,RActivation,TForcetilde,TForce,lMtilde,lM,dTForcetilde,MuscleNames,OptInfo,DatStore]=SolveMuscleRedundancy_FtildeState_actdyn_CasADi(model_path,IK_path,ID_path,time,OutPath,Misc)
 
 %% ---------------------------------------------------------------------- %
 % ----------------------------------------------------------------------- %
@@ -374,7 +374,7 @@ vA_opt = sol.value(vA)';
 % Reserve actuators
 aT_opt = sol.value(aT)';
 % Time derivatives of muscle-tendon forces
-% dFTtilde_opt = sol.value(dFTtilde)';
+dFTtilde_opt = sol.value(dFTtilde)';
 
 % Variables at collocation points
 % Muscle activations
@@ -422,6 +422,7 @@ TForce.collocationPoints = FTtilde_opt_ext.*repmat(DatStore.Fiso,length(Time.col
 MExcitation.meshPoints = e_opt;
 RActivation.meshPoints = aT_opt*auxdata.Topt;
 MuscleNames = DatStore.MuscleNames;
+dTForcetilde.meshPoints = dFTtilde_opt;
 OptInfo = output;
 % Muscle fiber lengths from Ftilde
 lMTinterp.meshPoints = LMTinterp;
