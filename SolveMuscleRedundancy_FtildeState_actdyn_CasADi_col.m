@@ -290,9 +290,6 @@ opti.set_initial(FTtildemesh,0.2);
 % Muscle excitations
 vA = opti.variable(auxdata.NMuscles,N);
 opti.subject_to(vA_min/tdeact < vA < vA_max/tact);
-% Reserve actuators
-aT = opti.variable(auxdata.Ndof,N);
-opti.subject_to(-1 < aT <1);
 
 % Slack controls
 % Time derivative of muscle-tendon forces (states)
@@ -300,14 +297,20 @@ dFTtildemesh = opti.variable(auxdata.NMuscles,d*N);
 opti.subject_to(dF_min < dFTtildemesh < dF_max);
 opti.set_initial(dFTtildemesh,0.01);
 
+% Reserve actuators
+aT = opti.variable(auxdata.Ndof,d*N);
+opti.subject_to(-1 < aT <1);
+
 % Loop over mesh points formulating NLP
 J = 0; % Initialize cost function
 for k=1:N
     % Variables within current mesh interval
     ak = a(:,k); FTtildek = FTtilde(:,k);
-    ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
+    ak_colloc = [ak amesh(:,(k-1)*d+1:k*d)]; 
+    FTtildek_colloc = [FTtildek FTtildemesh(:,(k-1)*d+1:k*d)];
     dFTtildek_colloc = dFTtildemesh(:,(k-1)*d+1:k*d); 
-    aTk = aT(:,k); vAk = vA(:,k);
+    aTk_colloc = aT(:,(k-1)*d+1:k*d);    
+    vAk = vA(:,k);
     LMTinterpk = LMTinterp((k-1)*d+1:k*d,:);
     VMTinterpk = VMTinterp((k-1)*d+1:k*d,:);
     IDinterpk = IDinterp((k-1)*d+1:k*d,:);
@@ -327,7 +330,7 @@ for k=1:N
         % Add contribution to the quadrature function
         J = J + ...
             B(j+1)*f_ssNMuscles(ak_colloc(:,j+1)')*h + ...
-            auxdata.w1*B(j+1)*f_ssNdof(aTk')*h + ...
+            auxdata.w1*B(j+1)*f_ssNdof(aTk_colloc(:,j)')*h + ...
             auxdata.w2*B(j+1)*f_ssNMuscles(vAk')*h + ...
             auxdata.w2*B(j+1)*f_ssNMuscles(dFTtildek_colloc(:,j))*h;
         
@@ -344,7 +347,7 @@ for k=1:N
         for dof = 1:auxdata.Ndof
             T_exp = IDinterpk(j,dof);
             index_sel = (dof-1)*(auxdata.NMuscles)+1:(dof-1)*(auxdata.NMuscles)+auxdata.NMuscles;
-            T_sim = f_spNMuscles(MAinterpk(j,index_sel),FTkj) + auxdata.Topt*aTk(dof);
+            T_sim = f_spNMuscles(MAinterpk(j,index_sel),FTkj) + auxdata.Topt*aTk_colloc(dof,j);
             opti.subject_to(T_exp-T_sim == 0)
         end
         
@@ -434,7 +437,7 @@ TForcetilde.collocationPoints = FTtilde_opt_ext;
 TForce.meshPoints = FTtilde_opt.*repmat(DatStore.Fiso,length(Time.meshPoints),1);
 TForce.collocationPoints = FTtilde_opt_ext.*repmat(DatStore.Fiso,length(Time.collocationPoints),1);
 MExcitation.meshPoints = e_opt;
-RActivation.meshPoints = aT_opt*auxdata.Topt;
+RActivation.collocationPointsOnly = aT_opt*auxdata.Topt;
 dTForcetilde.collocationPointsOnly = dFTtildemesh_opt;
 MuscleNames = DatStore.MuscleNames;
 OptInfo = output;
