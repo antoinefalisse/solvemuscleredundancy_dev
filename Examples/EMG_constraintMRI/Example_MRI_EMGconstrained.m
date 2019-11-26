@@ -42,7 +42,6 @@ Misc.MaxScale    = 10;  % maximal value to scale EMG
 % Provide the correct headers int case you EMG file has not the same
 % headers as the muscle names in OpenSim (leave empty when you don't want
 % to use this)
-
 Misc.EMGheaders = {'time','rectus_fem_l', 'vas_lat_l', 'bi_fem_lh_l', 'semiten_l', 'tib_ant_l', 'gas_med_l', 'soleus_l', 'glut_med2_l',...
     'rectus_fem_r', 'vas_lat_r', 'bi_fem_lh_r', 'semiten_r', 'tib_ant_r', 'gas_med_r', 'soleus_r', 'glut_med2_r'}; 
 
