@@ -39,13 +39,13 @@ for i=1:length(Misc.DofNames_Input)
         dM_temp=nan(nfr,length(Misc.DofNames_Input),length(Misc.MuscleNames));    % pre-allocate moment arms
         
         % read indexes in time frame for muscle analysis
-        t_Mus=dm_Data_temp.data(:,1);           t_Mus=round(t_Mus*10000)/10000;
-        ind0=find(t_Mus>=Misc.time(1),1,'first'); ind_end=find(t_Mus<=Misc.time(2),1,'last');
-        Mus_inds=ind0:ind_end;
+%         t_Mus=dm_Data_temp.data(:,1);           t_Mus=round(t_Mus*10000)/10000;
+%         ind0=find(t_Mus>=Misc.time(1),1,'first'); ind_end=find(t_Mus<=Misc.time(2),1,'last');
+%         Mus_inds=ind0:ind_end;
     end
     
     % Evaluate if one of the muscles spans this DOF (when moment arms > 0.001)
-    dM=dm_Data_temp.data(Mus_inds,Inds_muscles);    
+    dM=dm_Data_temp.data(:,Inds_muscles);    
     if any(any(abs(dM)>0.001))
         Misc.DofNames_muscles{ct}=Misc.DofNames_Input{i};
         dM_temp(:,i,:)=dM;
@@ -76,16 +76,14 @@ end
 % Filter the moment arms information and store them in DatStore.dM
 dM_raw=dM_temp(:,DOF_inds,:);
 t_dM = dm_Data_temp.data(:,1);
-t_dM=round(t_dM*10000)/10000;
 fs=1/mean(diff(t_dM));
 [B,A] = butter(Misc.f_order_dM, Misc.f_cutoff_dM/(fs/2));
 DatStore.dM = filtfilt(B,A,dM_raw);
 
 % filter Muscle-tendon lengths and store them in DatStore.LMT
 LMT_dat=importdata(fullfile(Misc.MuscleAnalysisPath,[Misc.trialName '_MuscleAnalysis_Length.sto']));
-LMT_raw=LMT_dat.data(Mus_inds,Inds_muscles);
+LMT_raw=LMT_dat.data(:,Inds_muscles);
 t_lMT = LMT_dat.data(:,1);
-t_lMT=round(t_lMT*10000)/10000;
 fs=1/mean(diff(t_lMT));             % sampling frequency
 [B,A] = butter(Misc.f_order_lMT,Misc.f_cutoff_lMT/(fs/2));
 DatStore.LMT = filtfilt(B,A,LMT_raw);
@@ -106,7 +104,8 @@ if ~isfield(IK_data,'colheaders')
 end
 
 % select the IK information between the selected time frames
-t_IK=IK_data.data(:,1);     t_IK=round(t_IK*10000)/10000; 
+t_IK=IK_data.data(:,1);     
+% t_IK=round(t_IK*10000)/10000; 
 ind0=find(t_IK>=Misc.time(1),1,'first'); ind_end=find(t_IK<=Misc.time(2),1,'last');
 IK_inds=ind0:ind_end;
 
@@ -121,7 +120,7 @@ end
 %% Filter ID
 % Get the ID data
 ID_data=importdata(ID_path);
-t_ID=ID_data.data(:,1); t_ID=round(t_ID*10000)/10000;
+t_ID=ID_data.data(:,1);
 
 % get the ID index
 if ~isfield(ID_data,'colheaders')
@@ -143,9 +142,9 @@ for i = 2:M         % filtering time vector not needed (start from 2)
 end
 
 % select ID data between start and end
-ID_data_int=interp1(ID_data.data(:,1),ID_data.data,IK_data.data(:,1));       % interpolate data for IK sampling frequency
-t_ID=ID_data_int(:,1); t_ID=round(t_ID*10000)/10000;
-ind0=find(t_ID>=Misc.time(1),1,'first'); ind_end=find(t_ID<=Misc.time(2),1,'last');
+ID_data_int = interp1(ID_data.data(:,1),ID_data.data,IK_data.data(:,1));       % interpolate data for IK sampling frequency
+t_ID = ID_data_int(:,1);
+ind0 = find(t_ID>=Misc.time(1),1,'first'); ind_end=find(t_ID<=Misc.time(2),1,'last');
 ID_inds=ind0:ind_end;
 
 %% store the data
