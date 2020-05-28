@@ -10,9 +10,9 @@ filepath=which('RunningExample.m');
 addpath(genpath(MainDir));
 
 % Needed Input Arguments
-IK_path=fullfile(MainDir,'IKoutput_RN21.mot');
-ID_path=fullfile(MainDir,'IDoutput_RN21.sto');
-model_path=fullfile(MainDir,'GaitModelforGRunning_scaled.osim');
+IK_path=fullfile(MainDir,'IKoutput.mot');
+ID_path=fullfile(MainDir,'IDoutput.sto');
+model_path=fullfile(MainDir,'ScaledModel.osim');
 time=[IC TO];
 Out_path=fullfile(MainDir,'Results');
 
