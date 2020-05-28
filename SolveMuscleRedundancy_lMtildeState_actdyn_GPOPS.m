@@ -123,6 +123,19 @@ if isempty(ID_path) || ~exist(ID_path,'file')
     end    
 end
 
+
+% adapt the time indices based on time vector IK solution
+IK = importdata(IK_path);
+tIK = IK.data(:,1);
+t0 = tIK(tIK>= time(1)); t0 = t0(1);
+tend = tIK(tIK<= time(2)); tend = tend(end);
+time_new = [t0 tend];
+if sum(time-time_new) ~= 0
+    disp(['Adapted time window to framerate IK solution: ' num2str(time_new)]);
+    time = time_new;
+end
+
+
 % ----------------------------------------------------------------------- %
 % Muscle analysis ------------------------------------------------------- %
 
