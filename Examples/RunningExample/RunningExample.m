@@ -1,9 +1,11 @@
-IC = 1.85;
-TO = 2.25;
+
+% select time indexes
+IC = 1.852;
+TO = 2.248;
 
 %% Example
 % Add main folder and subfolder to matlab path (installation)
-filepath=which('RunningExample2.m');
+filepath=which('RunningExample.m');
 [MainDir,~,~]=fileparts(filepath);
 addpath(genpath(MainDir));
 

@@ -36,12 +36,7 @@ for i=1:length(Misc.DofNames_Input)
         end
         Misc.MuscleNames=Misc.MuscleNames_Input(IndsNames_sel);
         Inds_muscles(isnan(Inds_muscles))=[];                               % Delete the muscles names that are not selected by the user
-        dM_temp=nan(nfr,length(Misc.DofNames_Input),length(Misc.MuscleNames));    % pre-allocate moment arms
-        
-        % read indexes in time frame for muscle analysis
-%         t_Mus=dm_Data_temp.data(:,1);           t_Mus=round(t_Mus*10000)/10000;
-%         ind0=find(t_Mus>=Misc.time(1),1,'first'); ind_end=find(t_Mus<=Misc.time(2),1,'last');
-%         Mus_inds=ind0:ind_end;
+        dM_temp=nan(nfr,length(Misc.DofNames_Input),length(Misc.MuscleNames));    % pre-allocate moment arms        
     end
     
     % Evaluate if one of the muscles spans this DOF (when moment arms > 0.001)
@@ -105,7 +100,6 @@ end
 
 % select the IK information between the selected time frames
 t_IK=IK_data.data(:,1);     
-% t_IK=round(t_IK*10000)/10000; 
 ind0=find(t_IK>=Misc.time(1),1,'first'); ind_end=find(t_IK<=Misc.time(2),1,'last');
 IK_inds=ind0:ind_end;
 

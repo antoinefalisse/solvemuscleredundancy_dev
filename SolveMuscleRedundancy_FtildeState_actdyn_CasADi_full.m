@@ -127,7 +127,7 @@ if isempty(ID_path) || ~exist(ID_path,'file')
     end    
 end
 
-% adapt the time indexes based on time vector IK solution
+% adapt the time indices based on time vector IK solution
 IK = importdata(IK_path);
 tIK = IK.data(:,1);
 t0 = tIK(tIK>= time(1)); t0 = t0(1);
